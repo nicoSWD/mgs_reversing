@@ -499,7 +499,34 @@ void s14e_800C7AEC( Work *work, int time )
 }
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7B9C.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7CD0.s")
+void s14e_800C7CD0( Work *work, int time )
+{
+    work->target->class |= TARGET_FLAG;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+
+    if ( time == 0 )
+    {
+        SetAction( work, 7, 4 );
+        work->subweapon = NewGrenadeEnemy( &work->control, &work->body, 9, &work->trigger, &GM_PlayerPosition, ENEMY_SIDE );
+    }
+
+    if ( time > 4 ) work->trigger |= 1;
+    if ( time == 17 ) GM_SeSet( &work->control.mov, SE_PINNUKI );
+    if ( time == 45 ) work->trigger |= 4;
+
+    if ( s14e_800C6E08( work ) )
+    {
+        GV_DestroyActor( work->subweapon );
+        return;
+    }
+
+    if ( work->body.is_end )
+    {
+        GV_DestroyActor( work->subweapon );
+        SetMode( work, s14e_800C7978 );
+    }
+}
+
 void s14e_800C7E28( Work *work, int time )
 {
     work->target->class |= TARGET_FLAG;
@@ -555,7 +582,19 @@ void s14e_800C82D0( Work *work )
 }
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8350.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C86D4.s")
+void s14e_800C86D4( Work *work, int time )
+{
+    if ( time == 0 )
+    {
+        SetAction( work, 38, 4 );
+    }
+
+    if ( work->body.is_end )
+    {
+        SetMode( work, s14e_800C94A8 );
+    }
+}
+
 void s14e_800C8748( Work *work, int time )
 {
     CONTROL *control;
