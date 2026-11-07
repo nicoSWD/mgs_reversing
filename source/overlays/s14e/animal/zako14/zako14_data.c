@@ -3,19 +3,53 @@
 #include "enemy/grnad_e.h"
 #include "game/vibrate.h"
 
-int  s14e_800C6E08( Work *work );
+int s14e_800C6A34( Work *work );
+int s14e_800C6AC0( Work *work );
+int s14e_800C6ADC( SVECTOR *vec );
+int s14e_800C6B18( Work *work );
+int s14e_800C6DB0( Work *work );
+int s14e_800C6E08( Work *work );
+void s14e_800C6E6C( Work *work );
+int s14e_800C6F40( int from, int to );
+void s14e_800C6F94( Work *work );
+int s14e_800C701C( Work *work );
+void s14e_800C712C( Work *work );
+int s14e_800C7194( Work *work );
 void s14e_800C7398( Work *work, int time );
+void s14e_800C7550( Work *work, int time );
+void s14e_800C77F8( Work *work, int time );
+void s14e_800C7888( Work *work, int time );
+void s14e_800C7970( Work *work, int time );
 void s14e_800C7978( Work *work, int time );
+void s14e_800C7AEC( Work *work, int time );
+void s14e_800C7B9C( Work *work, int time );
+void s14e_800C7CD0( Work *work, int time );
+void s14e_800C7E28( Work *work, int time );
+void s14e_800C7F00( Work *work, int time );
 void s14e_800C7FA8( Work *work, int time );
+void s14e_800C82D0( Work *work );
 void s14e_800C8350( Work *work, int time );
-void s14e_800C8898( Work *work, int time );
-void s14e_800C8A10( Work *work, int time );
-void s14e_800C8BE8( Work *work, int time );
-void s14e_800C8CF8( Work *work, int time );
 void s14e_800C86D4( Work *work, int time );
 void s14e_800C8748( Work *work, int time );
+void s14e_800C8898( Work *work, int time );
+void s14e_800C8A10( Work *work, int time );
 void s14e_800C8AD8( Work *work, int time );
+void s14e_800C8BE8( Work *work, int time );
+void s14e_800C8CF8( Work *work, int time );
 void s14e_800C94A8( Work *work, int time );
+
+void s14e_800C94A8( Work *work, int time );
+void s14e_800C9838( Work *work, int time );
+void s14e_800C9904( Work *work, int time );
+void s14e_800C99D0( Work *work, int time );
+void s14e_800C9A68( Work *work, int time );
+void s14e_800C9B00( Work *work, int time );
+void s14e_800C9BB4( Work *work, int time );
+void s14e_800C9C7C( Work *work, int time );
+void s14e_800C9D20( Work *work, int time );
+void s14e_800C9DE8( Work *work, int time );
+void s14e_800CA000( Work *work, int time );
+void s14e_800CA148( Work *work, int time );
 
 void s14e_800CA2E4( Work *work, int unit, int count );
 void s14e_800CA354( Work *work );
@@ -35,8 +69,7 @@ short ActionTable[] = {
 };
 int s14e_dword_800C33BC = 0x00000401;
 int s14e_dword_800C33C0 = 0x000004FF;
-int s14e_dword_800C33C4 = 0x0000FF6A;
-int s14e_dword_800C33C8 = 0x0000012C;
+static SVECTOR s14e_dword_800C33C4 = { -150, 0, 300 };
 int s14e_dword_800C33CC = 0xFD440000;
 int s14e_dword_800C33D0 = 0x00000384;
 int s14e_dword_800C33D4 = 0x00000000;
@@ -160,29 +193,6 @@ int s14e_800C6B18( Work *work )
     return 1;
 }
 
-const char s14e_dword_800DC9CC[] = {'8', 0xff, 0xe8, 0x3};
-const char s14e_dword_800DC9D0[] = {'X', 0x2, 0x0, 0x0};
-const char s14e_dword_800DC9D4[] = {0x5, 0x0, 0x0, 0x0};
-const char s14e_dword_800DC9D8[] = "d";
-const char s14e_dword_800DC9DC[] = {0x90, 0x1, 0xe8, 0x3};
-const char s14e_dword_800DC9E0[] = {0x90, 0x1, 0x0, 0x0};
-const char s14e_dword_800DC9E4[] = " vx=%d vy=%d vz=%d \n";
-const char s14e_dword_800DC9FC[] = {0x0, 0x0, 0x0, 0x0};
-const int s14e_dword_800DCA00 = 0x800C8DA4;
-const int s14e_dword_800DCA04 = 0x800C8DF4;
-const int s14e_dword_800DCA08 = 0x800C8EBC;
-const int s14e_dword_800DCA0C = 0x800C8E78;
-const int s14e_dword_800DCA10 = 0x800C8F00;
-const int s14e_dword_800DCA14 = 0x800C8F34;
-const int s14e_dword_800DCA18 = 0x800C8F8C;
-const int s14e_dword_800DCA1C = 0x800C8FD4;
-const int s14e_dword_800DCA20 = 0x800C9014;
-const int s14e_dword_800DCA24 = 0x800C8FF4;
-const int s14e_dword_800DCA28 = 0x800C9040;
-const int s14e_dword_800DCA2C = 0x800C9040;
-const char s14e_dword_800DCA30[] = "FA-MAS/BULLET * 25";
-const char s14e_dword_800DCA44[] = "SOCOM/BULLET * 12";
-const char s14e_dword_800DCA58[] = "RATION";
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6D20.s")
 int s14e_800C6DB0( Work *work )
@@ -213,7 +223,34 @@ int s14e_800C6E08( Work *work )
     work->target->class = TARGET_AVAIL;
     return 1;
 }
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6E6C.s")
+void s14e_800C6E6C( Work *work )
+{
+    SVECTOR *mov;
+
+    mov = &work->control.mov;
+    setVector( mov, 30000, 30000, 30000 );
+    work->param.item = 1;
+    work->think3 = 1;
+    work->field_9E4 = 0;
+    work->think1 = 0;
+    work->think2 = 0;
+    work->think4 = 0;
+    work->count3 = 0;
+    work->next_node = work->n_nodes - 1;
+    work->target_addr = work->field_BE8;
+    work->target_pos = work->start_pos;
+    work->vision.range = 512;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+    work->alert_level = 0;
+    work->vision.facedir = 0;
+    work->pad.sound = 0;
+    work->pad.field_4 = 1;
+    work->field_C44 = 0;
+    work->target_map = work->start_map;
+    work->next_pos = work->start_pos;
+    work->last_addr = work->next_addr = work->field_BE8;
+}
+
 int s14e_800C6F40( int from, int to )
 {
     int diff;
@@ -247,7 +284,43 @@ void s14e_800C6F94( Work *work )
     }
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C701C.s")
+int s14e_800C701C( Work *work )
+{
+    SVECTOR svec;
+    SVECTOR rp_shift = { -200, 1000, 600 };
+    SVECTOR force = { 5, 0, 100 };
+    SVECTOR size = { 400, 1000, 400 };
+    TARGET *target;
+
+    target = &work->punch;
+    GM_SetTarget( target, TARGET_POWER, ENEMY_SIDE, &size );
+
+    DG_SetPos2( &work->control.mov, &work->control.rot );
+    DG_RotVector( &force, &svec, 1 );
+    GM_SetPowerTarget( target, POWER_ONCE, 2, 32, 1, &svec );
+
+    DG_PutVector( &rp_shift, &target->center, 1 );
+    return GM_PowerTarget( target );
+}
+
+const char s14e_dword_800DC9E4[] = " vx=%d vy=%d vz=%d \n";
+const char s14e_dword_800DC9FC[] = {0x0, 0x0, 0x0, 0x0};
+const int s14e_dword_800DCA00 = 0x800C8DA4;
+const int s14e_dword_800DCA04 = 0x800C8DF4;
+const int s14e_dword_800DCA08 = 0x800C8EBC;
+const int s14e_dword_800DCA0C = 0x800C8E78;
+const int s14e_dword_800DCA10 = 0x800C8F00;
+const int s14e_dword_800DCA14 = 0x800C8F34;
+const int s14e_dword_800DCA18 = 0x800C8F8C;
+const int s14e_dword_800DCA1C = 0x800C8FD4;
+const int s14e_dword_800DCA20 = 0x800C9014;
+const int s14e_dword_800DCA24 = 0x800C8FF4;
+const int s14e_dword_800DCA28 = 0x800C9040;
+const int s14e_dword_800DCA2C = 0x800C9040;
+const char s14e_dword_800DCA30[] = "FA-MAS/BULLET * 25";
+const char s14e_dword_800DCA44[] = "SOCOM/BULLET * 12";
+const char s14e_dword_800DCA58[] = "RATION";
+
 void s14e_800C712C( Work *work )
 {
     TARGET *target;
@@ -258,7 +331,106 @@ void s14e_800C712C( Work *work )
     GM_PowerTarget( target );
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7194.s")
+int s14e_800C7194( Work *work )
+{
+    int press;
+
+    press = work->pad.press;
+
+    if ( press & 0x1 )
+    {
+        SetMode2( work, s14e_800C9838 );
+        return 0;
+    }
+
+    if ( press & 0x2 )
+    {
+        SetMode2( work, s14e_800C9904 );
+        return 0;
+    }
+
+    if ( press & 0x4 )
+    {
+        SetMode2( work, s14e_800C99D0 );
+        return 0;
+    }
+
+    if ( press & 0x2000 )
+    {
+        SetMode2( work, s14e_800C9A68 );
+        return 0;
+    }
+
+    if ( press & 0x40 )
+    {
+        SetMode2( work, s14e_800C9B00 );
+        return 0;
+    }
+
+    if ( press & 0x80 )
+    {
+        SetMode2( work, s14e_800C9BB4 );
+        return 0;
+    }
+
+    if ( press & 0x400 )
+    {
+        SetMode2( work, s14e_800C9C7C );
+        return 0;
+    }
+
+    if ( press & 0x800 )
+    {
+        SetMode2( work, s14e_800C9D20 );
+        return 0;
+    }
+
+    if ( press & 0x200 )
+    {
+        SetMode2( work, s14e_800C9DE8 );
+        return 0;
+    }
+
+    if ( press & 0x800000 )
+    {
+        SetMode2( work, s14e_800CA000 );
+        return 0;
+    }
+
+    if ( press & 0x1000000 )
+    {
+        SetMode2( work, s14e_800CA148 );
+        return 0;
+    }
+
+    if ( press & 0x100 )
+    {
+        SetMode( work, s14e_800C77F8 );
+        return 1;
+    }
+
+    if ( press & 0x20 )
+    {
+        SetMode( work, s14e_800C7888 );
+        return 1;
+    }
+
+    if ( press & 0x400000 )
+    {
+        SetMode( work, s14e_800C7970 );
+        return 1;
+    }
+
+    if ( press & 0x30000 )
+    {
+        SetMode( work, s14e_800C7978 );
+        work->adjust[ 2 ].vx = 0;
+        return 1;
+    }
+
+    return 0;
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7398.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7550.s")
 void s14e_800C77F8( Work *work, int time )
@@ -304,7 +476,7 @@ void s14e_800C7888( Work *work, int time )
 }
 
 
-void s14e_800C7970( void )
+void s14e_800C7970( Work *work, int time )
 {
     /* do nothing */
 }
@@ -372,7 +544,16 @@ void s14e_800C7F00( Work *work, int time )
 }
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7FA8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C82D0.s")
+void s14e_800C82D0( Work *work )
+{
+    SVECTOR pos;
+
+    work->control.turn = GM_PlayerControl->rot;
+    DG_SetPos2( &GM_PlayerPosition, &GM_PlayerControl->rot );
+    DG_PutVector( &s14e_dword_800C33C4, &pos, 1 );
+    GV_SubVec3( &pos, &work->control.mov, &work->control.step );
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8350.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C86D4.s")
 void s14e_800C8748( Work *work, int time )
