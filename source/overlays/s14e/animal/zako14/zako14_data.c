@@ -33,7 +33,6 @@ int s14e_800C6A34( Work *work );
 int s14e_800C6AC0( Work *work );
 int s14e_800C6ADC( SVECTOR *vec );
 int s14e_800C6B18( Work *work );
-int s14e_800C6D20( Work *work );
 int s14e_800C6DB0( Work *work );
 int s14e_800C6E08( Work *work );
 void s14e_800C6E6C( Work *work );
@@ -64,6 +63,7 @@ void s14e_800C8AD8( Work *work, int time );
 void s14e_800C8BE8( Work *work, int time );
 void s14e_800C8CF8( Work *work, int time );
 void s14e_800C94A8( Work *work, int time );
+void s14e_800C924C( Work *work, int time );
 
 void s14e_800C94A8( Work *work, int time );
 void s14e_800C9838( Work *work, int time );
@@ -203,7 +203,18 @@ int s14e_800C6B18( Work *work )
 }
 
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6D20.s")
+int s14e_800C6D20( Work *work )
+{
+    if ( work->control.levels[ 0 ] != 0 )
+    {
+        work->target->vital = 0;
+        SetAction( work, 39, 4 );
+        SetMode( work, s14e_800C924C );
+        return 1;
+    }
+
+    return 0;
+}
 int s14e_800C6DB0( Work *work )
 {
     if ( GM_GameStatus & STATE_STUN )
