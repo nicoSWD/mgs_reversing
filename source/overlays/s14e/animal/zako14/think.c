@@ -13,6 +13,7 @@ extern int       ZAKO14_PlayerMap;
 
 void s14e_800CA49C( Work *work, int mark );
 void s14e_800CDB78( Work *work );
+int  s14e_800CCCC4( Work *work );
 
 static SVECTOR s14e_dword_800C34D8[] = {
     { 5750, 0, -1000 },
@@ -242,7 +243,21 @@ int s14e_800CD024( Work *work )
     return 0;
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD08C.s")
+int s14e_800CD08C( Work *work )
+{
+    if ( !( work->count3 & 0x1F ) )
+    {
+        work->current_addr = -1;
+        work->last_addr = -1;
+        s14e_800CCCC4( work );
+    }
+
+    work->pad.dir = s14e_800CCCC4( work );
+    if ( work->pad.dir < 0 ) return 1;
+
+    work->count3++;
+    return 0;
+}
 int s14e_800CD0FC( Work *work, int r )
 {
     SVECTOR diff;
