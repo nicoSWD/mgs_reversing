@@ -976,7 +976,71 @@ void s14e_800C8BE8( Work *work, int time )
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C924C.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C94A8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C95B8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C96AC.s")
+void s14e_800C96AC( Work *work )
+{
+    ACT *act;
+    CONTROL *control;
+    ACTION action;
+    int time;
+
+    act = &work->act;
+    control = &work->control;
+
+    work->trigger = 0;
+    work->vision.length = 0;
+    work->target->class = TARGET_AVAIL;
+    work->field_8FC = 0;
+    work->act_status = 0;
+    work->field_C38 = 0;
+
+    action = work->action;
+
+    control->height = ( work->body.height * work->scale ) / 4096;
+    control->hzd_height = control->levels[ 0 ] + 750;
+
+    time = work->time++;
+
+    if ( action == NULL )
+    {
+        action = s14e_800C7398;
+        work->action = s14e_800C7398;
+    }
+
+    action( work, time );
+
+    action = work->action2;
+    if ( work->action2 != NULL )
+    {
+        time = work->time2++;
+        action( work, time );
+    }
+
+    if ( act->field_1E == 0 )
+    {
+        control->r_sphere = GV_NearExp2( control->r_sphere, act->field_1C );
+    }
+    else
+    {
+        control->r_sphere = -1;
+    }
+
+    if ( work->target->class & TARGET_POWER )
+    {
+        work->hom->flag = 1;
+    }
+    else
+    {
+        work->hom->flag = 0;
+    }
+
+    if ( act->field_04 < 0 && control->grounded ) act->field_04 = 0;
+
+    act->field_04 -= 16;
+    control->step.vy = act->field_04;
+
+    if ( work->mark_time > 0 ) work->mark_time--;
+}
+
 void s14e_800C9838( Work *work, int time )
 {
     if ( time == 0 ) SetAction2( work, 9, 4, 0x3FE );
