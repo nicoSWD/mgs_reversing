@@ -938,7 +938,40 @@ void s14e_800C8AD8( Work *work, int time )
     }
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8BE8.s")
+void s14e_800C8BE8( Work *work, int time )
+{
+    TARGET *target;
+
+    work->act.field_1E = 0;
+    work->target->class |= TARGET_FLAG;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+    work->act_status |= 0x8;
+
+    if ( s14e_800C6E08( work ) ) return;
+
+    target = work->target;
+
+    if ( time == 0 )
+    {
+        SetAction( work, 15, 4 );
+        GM_SeSet( &work->control.mov, 141 );
+
+        if ( target->a_mode == 3 )
+        {
+            GM_SeSet( &work->control.mov, 52 );
+            s14e_800CA354( work );
+        }
+        else
+        {
+            s14e_800CA2E4( work, 5, 0 );
+        }
+    }
+
+    if ( work->body.is_end )
+    {
+        SetMode( work, s14e_800C7398 );
+    }
+}
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8CF8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C924C.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C94A8.s")
