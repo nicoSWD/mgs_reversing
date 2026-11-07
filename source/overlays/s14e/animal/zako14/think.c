@@ -13,8 +13,6 @@ extern int       ZAKO14_PlayerMap;
 
 void s14e_800CA49C( Work *work, int mark );
 void s14e_800CD764( Work *work );
-int  s14e_800CD5A4( Work *work );
-int  s14e_800CD6C4( Work *work );
 void s14e_800CD858( Work *work );
 void s14e_800CD9DC( Work *work );
 void s14e_800CDADC( Work *work );
@@ -26,134 +24,88 @@ static SVECTOR s14e_dword_800C34D8[] = {
     { 5750, 0, 2000 }
 };
 
-int s14e_dword_800C34F0 = 0x00000000;
-int s14e_dword_800C34F4 = 0x00000000;
-int s14e_dword_800C34F8 = 0x00000001;
-int s14e_dword_800C34FC = 0x00000000;
-int s14e_dword_800C3500 = 0x00000000;
-int s14e_dword_800C3504 = 0x00000001;
-int s14e_dword_800C3508 = 0x00000000;
-int s14e_dword_800C350C = 0x00000000;
-int s14e_dword_800C3510 = 0x00000001;
-int s14e_dword_800C3514 = 0x00000000;
-int s14e_dword_800C3518 = 0x00000000;
-int s14e_dword_800C351C = 0x00000001;
-int s14e_dword_800C3520 = 0x00000000;
-int s14e_dword_800C3524 = 0x00000000;
-int s14e_dword_800C3528 = 0x00000000;
-int s14e_dword_800C352C = 0x00000000;
-int s14e_dword_800C3530 = 0x00000000;
-int s14e_dword_800C3534 = 0x00000000;
-int s14e_dword_800C3538 = 0x00000001;
-int s14e_dword_800C353C = 0x00000000;
-int s14e_dword_800C3540 = 0x00000001;
-int s14e_dword_800C3544 = 0x00000002;
-int s14e_dword_800C3548 = 0x00000000;
-int s14e_dword_800C354C = 0x00000001;
-int s14e_dword_800C3550 = 0x00000002;
-int s14e_dword_800C3554 = 0x00000000;
-int s14e_dword_800C3558 = 0x00000000;
-int s14e_dword_800C355C = 0x00000001;
-int s14e_dword_800C3560 = 0x00000000;
-int s14e_dword_800C3564 = 0x00000000;
-int s14e_dword_800C3568 = 0x00000000;
-int s14e_dword_800C356C = 0x00000000;
-int s14e_dword_800C3570 = 0x00000000;
-int s14e_dword_800C3574 = 0x00000001;
-int s14e_dword_800C3578 = 0x00000002;
-int s14e_dword_800C357C = 0x00000000;
-int s14e_dword_800C3580 = 0x00000000;
-int s14e_dword_800C3584 = 0x00000001;
-int s14e_dword_800C3588 = 0x00000000;
-int s14e_dword_800C358C = 0x00000000;
-int s14e_dword_800C3590 = 0x00000001;
-int s14e_dword_800C3594 = 0x00000000;
-int s14e_dword_800C3598 = 0x00000001;
-int s14e_dword_800C359C = 0x00000002;
-int s14e_dword_800C35A0 = 0x00000000;
-int s14e_dword_800C35A4 = 0x00000000;
-int s14e_dword_800C35A8 = 0x00000000;
-int s14e_dword_800C35AC = 0x00000000;
-int s14e_dword_800C35B0 = 0x00000000;
-int s14e_dword_800C35B4 = 0x00000000;
-int s14e_dword_800C35B8 = 0x00000000;
-int s14e_dword_800C35BC = 0x00000000;
-int s14e_dword_800C35C0 = 0x00000000;
-int s14e_dword_800C35C4 = 0x00000000;
-int s14e_dword_800C35C8 = 0x00000000;
-int s14e_dword_800C35CC = 0x00000000;
-int s14e_dword_800C35D0 = 0x00000000;
-int s14e_dword_800C35D4 = 0x00000000;
-int s14e_dword_800C35D8 = 0x00000000;
-int s14e_dword_800C35DC = 0x00000000;
-int s14e_dword_800C35E0 = 0x00000000;
-int s14e_dword_800C35E4 = 0x00000000;
-int s14e_dword_800C35E8 = 0x00000000;
-int s14e_dword_800C35EC = 0x00000000;
-int s14e_dword_800C35F0 = 0x00000000;
-int s14e_dword_800C35F4 = 0x00000000;
-int s14e_dword_800C35F8 = 0x00000003;
-int s14e_dword_800C35FC = 0x00000003;
-int s14e_dword_800C3600 = 0x00000003;
-int s14e_dword_800C3604 = 0x00000002;
-int s14e_dword_800C3608 = 0x00000002;
-int s14e_dword_800C360C = 0x00000002;
-int s14e_dword_800C3610 = 0x00000003;
-int s14e_dword_800C3614 = 0x00000003;
-int s14e_dword_800C3618 = 0x00000003;
-int s14e_dword_800C361C = 0x00000000;
-int s14e_dword_800C3620 = 0x00000000;
-int s14e_dword_800C3624 = 0x00000000;
-int s14e_dword_800C3628 = 0x00000000;
-int s14e_dword_800C362C = 0x00000000;
-int s14e_dword_800C3630 = 0x00000001;
-int s14e_dword_800C3634 = 0x00000001;
-int s14e_dword_800C3638 = 0x00000002;
-int s14e_dword_800C363C = 0x00000002;
-int s14e_dword_800C3640 = 0x00000020;
-int s14e_dword_800C3644 = 0x00000020;
-int s14e_dword_800C3648 = 0x00000003;
-int s14e_dword_800C364C = 0x00000009;
-int s14e_dword_800C3650 = 0x00000009;
-int s14e_dword_800C3654 = 0x00000002;
-int s14e_dword_800C3658 = 0x00000002;
-int s14e_dword_800C365C = 0x00000001;
-int s14e_dword_800C3660 = 0x00000000;
-int s14e_dword_800C3664 = 0x00000000;
-int s14e_dword_800C3668 = 0x00000000;
-int s14e_dword_800C366C = 0x00000000;
-int s14e_dword_800C3670 = 0x00000003;
-int s14e_dword_800C3674 = 0x00000017;
-int s14e_dword_800C3678 = 0x00000017;
-int s14e_dword_800C367C = 0x00000000;
-int s14e_dword_800C3680 = 0x00000000;
-int s14e_dword_800C3684 = 0x00000001;
-int s14e_dword_800C3688 = 0x00000001;
-int s14e_dword_800C368C = 0x00000001;
-int s14e_dword_800C3690 = 0x00000000;
-int s14e_dword_800C3694 = 0x00000000;
-int s14e_dword_800C3698 = 0x00000006;
-int s14e_dword_800C369C = 0x00000006;
-int s14e_dword_800C36A0 = 0x00000000;
-int s14e_dword_800C36A4 = 0x00000000;
-int s14e_dword_800C36A8 = 0x00000000;
-int s14e_dword_800C36AC = 0x00000000;
-int s14e_dword_800C36B0 = 0x00000002;
-int s14e_dword_800C36B4 = 0x00000002;
-int s14e_dword_800C36B8 = 0x00000002;
-int s14e_dword_800C36BC = 0x00000002;
-int s14e_dword_800C36C0 = 0x00000000;
-int s14e_dword_800C36C4 = 0x00000000;
-int s14e_dword_800C36C8 = 0x00000000;
-int s14e_dword_800C36CC = 0x00000000;
-int s14e_dword_800C36D0 = 0x00000000;
-int s14e_dword_800C36D4 = 0x00000000;
-int s14e_dword_800C36D8 = 0x00000000;
-int s14e_dword_800C36DC = 0x00000000;
-int s14e_dword_800C36E0 = 0x00000000;
-int s14e_dword_800C36E4 = 0x00000000;
-int s14e_dword_800C36E8 = 0x00000000;
-int s14e_dword_800C36EC = 0x00000000;
+static int ActionPatternA[ 4 ][ 16 ] = {
+    { 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0 },
+    { 0, 0, 1, 0, 1, 2, 0, 1, 2, 0, 0, 1, 0, 0, 0, 0 },
+    { 0, 1, 2, 0, 0, 1, 0, 0, 1, 0, 1, 2, 0, 0, 0, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+};
+
+static u_char ActionPatternB[ 4 ][ 16 ][ 4 ] = {
+    {
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 3, 0, 0, 0 },
+        { 3, 0, 0, 0 },
+        { 3, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 3, 0, 0, 0 },
+        { 3, 0, 0, 0 },
+        { 3, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+    },
+    {
+        { 1, 0, 0, 0 },
+        { 1, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 32, 0, 0, 0 },
+        { 32, 0, 0, 0 },
+        { 3, 0, 0, 0 },
+        { 9, 0, 0, 0 },
+        { 9, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 1, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+    },
+    {
+        { 3, 0, 0, 0 },
+        { 23, 0, 0, 0 },
+        { 23, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 1, 0, 0, 0 },
+        { 1, 0, 0, 0 },
+        { 1, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 6, 0, 0, 0 },
+        { 6, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+    },
+    {
+        { 2, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 2, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+        { 0, 0, 0, 0 },
+    },
+};
+
 
 
 void s14e_800CCB60( Work *work )
@@ -428,15 +380,53 @@ int s14e_800CD55C( Work *work )
     return 0;
 }
 
-const char s14e_dword_800DCFC4[] = {0x0, 0x0, 0x0, 0x0};
-const int s14e_dword_800DCFC8 = 0x800CD654;
-const int s14e_dword_800DCFCC = 0x800CD69C;
-const int s14e_dword_800DCFD0 = 0x800CD684;
-const int s14e_dword_800DCFD4 = 0x800CD68C;
-const int s14e_dword_800DCFD8 = 0x800CD694;
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD5A4.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD6C4.s")
+int s14e_800CD5A4( Work *work )
+{
+    work->pad.press |= 0x10000;
+    work->pad.dir = work->sn_dir;
+
+    if ( work->count3 == 16 )
+    {
+        work->count3 += GV_RandU( 14 );
+    }
+
+    if ( work->count3 < 0 || work->count3 > 32 )
+    {
+        switch ( ActionPatternA[ work->param.index ][ ZAKO14_GameFlag ] )
+        {
+        case 0:
+            if ( work->sn_dis < 800 )
+            {
+                if ( !( GM_PlayerStatus & 0x1060 ) )
+                {
+                    return 10;
+                }
+            }
+
+            return 6;
+        case 2:
+            return 7;
+        case 3:
+            return 12;
+        case 4:
+            return 13;
+        case 1:
+            return 14;
+        }
+    }
+
+    work->count3++;
+    return 0;
+}
+int s14e_800CD6C4( Work *work )
+{
+    work->pad.press |= 0x10000;
+    work->pad.dir = work->sn_dir;
+
+    work->param.next = ActionPatternB[ work->param.index ][ ZAKO14_GameFlag ][ 0 ];
+    return 15;
+}
 void s14e_800CD714( Work *work )
 {
     s14e_800CCC04( work );
