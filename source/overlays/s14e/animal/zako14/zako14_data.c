@@ -2,6 +2,15 @@
 
 #include "enemy/grnad_e.h"
 #include "game/vibrate.h"
+#include "anime/animconv/anime.h"
+#include "enemy/l_sight.h"
+#include "game/item.h"
+#include "okajima/blood.h"
+#include "okajima/bullet.h"
+
+extern void *AN_Breath( MATRIX *world );
+extern void *AN_Fog( SVECTOR *pos );
+extern void *AN_HeadMark( MATRIX* world, int mark );
 
 extern SVECTOR   ZAKO14_PlayerPosition;
 extern COMMANDER ZAKO14Command;
@@ -83,23 +92,6 @@ int s14e_dword_800C33BC = 0x00000401;
 int s14e_dword_800C33C0 = 0x000004FF;
 static SVECTOR s14e_dword_800C33C4 = { -150, 0, 300 };
 static SVECTOR BreathPos = { 0, -700, 900 };
-int s14e_dword_800C33D4 = 0x00000000;
-int s14e_dword_800C33D8 = 0x00000064;
-int s14e_dword_800C33DC = 0x0000FC00;
-int s14e_dword_800C33E0 = 0x00000000;
-int s14e_dword_800C33E4 = 0x00000000;
-int s14e_dword_800C33E8 = 0x00000064;
-int s14e_dword_800C33EC = 0x0000FC00;
-int s14e_dword_800C33F0 = 0x00000000;
-int s14e_dword_800C33F4 = 0x800DCA58;
-int s14e_dword_800C33F8 = 0x800DCA44;
-int s14e_dword_800C33FC = 0x800DCA30;
-int s14e_dword_800C3400 = 0x800CA538;
-int s14e_dword_800C3404 = 0x800CA5D0;
-int s14e_dword_800C3408 = 0x800CA718;
-int s14e_dword_800C340C = 0x800CA754;
-int s14e_dword_800C3410 = 0xFE0C0005;
-int s14e_dword_800C3414 = 0x00000050;
 
 
 int s14e_800C6A34( Work *work )
@@ -328,9 +320,32 @@ const int s14e_dword_800DCA20 = 0x800C9014;
 const int s14e_dword_800DCA24 = 0x800C8FF4;
 const int s14e_dword_800DCA28 = 0x800C9040;
 const int s14e_dword_800DCA2C = 0x800C9040;
-const char s14e_dword_800DCA30[] = "FA-MAS/BULLET * 25";
-const char s14e_dword_800DCA44[] = "SOCOM/BULLET * 12";
-const char s14e_dword_800DCA58[] = "RATION";
+
+void s14e_800CA538( Work *work );
+void s14e_800CA5D0( Work *work );
+void s14e_800CA718( Work *work );
+void s14e_800CA754( Work *work );
+
+static SVECTOR BloodPos = {0, 0, 100};
+static SVECTOR BloodRot = {-1024, 0, 0};
+
+static SVECTOR FogPos = {0, 0, 100};
+static SVECTOR FogRot = {-1024, 0, 0};
+
+static char *ItemText[] = {
+    "RATION",
+    "SOCOM/BULLET * 12",
+    "FA-MAS/BULLET * 25",
+};
+
+static void *PutChars[] = {
+    s14e_800CA538,
+    s14e_800CA5D0,
+    s14e_800CA718,
+    s14e_800CA754,
+};
+
+static SVECTOR BulletPos = {5, -500, 80};
 
 void s14e_800C712C( Work *work )
 {
@@ -1126,17 +1141,154 @@ void s14e_800CA148( Work *work, int time )
     }
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA2E4.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA354.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA3B8.s")
+void s14e_800CA2E4( Work *work, int unit, int count )
+{
+    MATRIX world;
+
+    DG_SetPos( &work->body.objs->objs[ unit ].world );
+    DG_MovePos( &BloodPos );
+    DG_RotatePos( &BloodRot );
+    ReadRotMatrix( &world );
+    NewBlood( &world, count );
+}
+
+void s14e_800CA354( Work *work )
+{
+    MATRIX world;
+    SVECTOR pos;
+
+    DG_SetPos( &work->body.objs->objs[ 1 ].world );
+    DG_MovePos( &FogPos );
+    DG_RotatePos( &FogRot );
+    ReadRotMatrix( &world );
+    DG_COPY_VEC( &pos, (VECTOR *)world.t );
+    AN_Fog( &pos );
+}
+
+void s14e_800CA3B8( Work *work )
+{
+    SVECTOR step;
+    ITEM_INFO info;
+    SVECTOR *pos;
+
+    pos = &work->control.mov;
+
+    step = work->act.field_0C;
+    step.vx += GV_RandU( 10 );
+    step.vy += 100;
+    step.vz += GV_RandU( 10 );
+
+    GV_RandU( 4 );
+
+    if ( GM_Weapons[ WP_Famas ] < 0 )
+    {
+        info.message = ItemText[ 1 ];
+        info.type = 2;
+        info.id = WP_Socom;
+        info.num = 12;
+    }
+    else
+    {
+        info.message = ItemText[ 2 ];
+        info.type = 2;
+        info.id = WP_Famas;
+        info.num = 25;
+    }
+
+    info.time = 900;
+    NewItemPut( pos, &step, &info );
+}
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA49C.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA538.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA5D0.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA718.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA754.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA890.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA8D8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA90C.s")
+
+void s14e_800CA718( Work *work )
+{
+    if ( work->vision.pad != 2 ) return;
+    NewLSight( &GM_PlayerPosition, &work->control.mov, MAKE_RGB( 143, 0, 0 ) );
+}
+
+void s14e_800CA754( Work *work )
+{
+    SVECTOR rot;
+    MATRIX bullet_pos;
+    MATRIX *world;
+    int flag;
+
+    rot = DG_ZeroVector;
+    rot.vz = GV_RandU( 128 );
+
+    world = &work->body.objs->objs[ 4 ].world;
+    DG_SetPos( world );
+    DG_MovePos( &BulletPos );
+    DG_RotatePos( &rot );
+    rot.vx = GV_RandS( 16 ) + 1024;
+    rot.vz = 0;
+    DG_RotatePos( &rot );
+    ReadRotMatrix( &bullet_pos );
+
+    if ( GV_Time % 4 )
+    {
+        flag = BULLET_RECOILSPARK;
+        NewBulletEx( flag, &bullet_pos, ENEMY_SIDE, 1, 0, 10, work->param.damage, 10000, 750 );
+    }
+    else
+    {
+        flag = BULLET_RECOILSPARK | BULLET_NO_HZD;
+        NewBulletEx( flag, &bullet_pos, ENEMY_SIDE, 1, 0, 10, work->param.damage, 10000, 750 );
+    }
+
+    GM_SeSetMode( &work->control.mov, SE_ENEMY_SHOT, GM_SEMODE_BOMB );
+    AN_BulletSmoke( world, 0 );
+    AN_FamasFlash( &bullet_pos );
+
+    s14e_800CA8D8( work, s14e_800CA754 );
+}
+
+int s14e_800CA890( Work *work, int index )
+{
+    int i;
+
+    for ( i = 0; i < 8; i++ )
+    {
+        if ( work->putchar[ i ] == NULL )
+        {
+            work->putchar[ i ] = PutChars[ index ];
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int s14e_800CA8D8( Work *work, void *func )
+{
+    int i;
+    
+    for ( i = 0; i < 8; i++ )
+    {
+        if ( work->putchar[ i ] == func )
+        {
+            work->putchar[ i ] = NULL;
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void s14e_800CA90C( Work *work )
+{
+    int i;
+    void ( *func )( Work * );
+
+    for ( i = 0; i < 8; i++ )
+    {
+        func = work->putchar[ i ];
+        if ( func != NULL ) func( work );
+    }
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA96C.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA998.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CAA1C.s")

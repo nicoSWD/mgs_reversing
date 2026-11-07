@@ -314,7 +314,7 @@ int  ZAKO14_SetPutChar( Work *work, int index );
 int  ZAKO14_ClearPutChar( Work *work, void *func );
 void ZAKO14_ExecPutChars( Work *work );
 
-void s14e_800CA890( Work *work, int ); // ZAKO14_SetPutChar
+int s14e_800CA890( Work *work, int ); // ZAKO14_SetPutChar
 
 // zk11aact.c
 void Zako14ActionMain( Work *work );
