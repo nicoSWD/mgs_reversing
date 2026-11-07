@@ -96,8 +96,8 @@ short ActionTable[] = {
     18, 43, 23, 24, 28, 29, 0, 1,
     51, 17, 18, 43, 22,
 };
-int s14e_dword_800C33BC = 0x00000401;
-int s14e_dword_800C33C0 = 0x000004FF;
+static u_char VibH[] = { 1, 4, 0, 0 };
+static u_char VibL[] = { 255, 4, 0, 0 };
 static SVECTOR s14e_dword_800C33C4 = { -150, 0, 300 };
 static SVECTOR BreathPos = { 0, -700, 900 };
 
@@ -850,7 +850,115 @@ void s14e_800C82D0( Work *work )
     GV_SubVec3( &pos, &work->control.mov, &work->control.step );
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8350.s")
+void s14e_800C8350( Work *work, int time )
+{
+    TARGET *target;
+    int motion;
+
+    target = work->target;
+    motion = work->act.motion1;
+
+    work->act.field_1E = 0;
+    work->act_status |= 0xC;
+
+    if ( time == 0 )
+    {
+        work->field_B5A = target->faint;
+        GM_SeSet( &work->control.mov, SE_V_ENE_GRABBED );
+    }
+
+    if ( work->field_B5A != target->faint )
+    {
+        GM_SeSet( &work->control.mov, SE_V_ENE_GRABBED );
+        work->field_B5A = target->faint;
+    }
+
+    if ( target->damaged & TARGET_POWER )
+    {
+        s14e_800CA2E4( work, 5, 0 );
+        GM_SeSet( &work->control.mov, SE_V_ENE_GRABBED );
+
+        target->force = DG_ZeroVector;
+        target->damage = 0;
+        target->damaged = 0;
+
+        if ( target->vital <= 0 )
+        {
+            if ( target->a_mode == 1 )
+            {
+                work->field_C44 = 1;
+            }
+
+            work->act.field_14 = 5;
+            target->side = ENEMY_SIDE;
+            SetMode( work, s14e_800C8CF8 );
+            target->captured = 0;
+        }
+    }
+
+    switch ( GM_PlayerAction )
+    {
+    case 7:
+    case 13:
+        if ( motion != 27 && motion != 48 )
+        {
+            target->side = PLAYER_SIDE;
+            SetAction( work, 27, 4 );
+            work->field_B5C = 0;
+        }
+
+        if ( work->field_B5C == 15 && target->faint > 0 )
+        {
+            SetAction( work, 48, 4 );
+        }
+
+        if ( motion == 48 && !( work->field_B5C & 7 ) )
+        {
+            NewPadVibration( VibH, 1 );
+            NewPadVibration( VibL, 2 );
+        }
+
+        if ( work->field_B5C >= 31 )
+        {
+            target->captured = 0;
+        }
+
+        work->control.turn = GM_PlayerControl->rot;
+        s14e_800C82D0( work );
+        work->field_B5C++;
+        break;
+    case 38:
+        if ( motion != 28 )
+        {
+            target->side = PLAYER_SIDE;
+            SetAction( work, 28, 4 );
+        }
+
+        work->control.turn = GM_PlayerControl->rot;
+        s14e_800C82D0( work );
+        break;
+    case 39:
+        work->act.field_14 = 4;
+        target->side = ENEMY_SIDE;
+        target->vital = 0;
+        SetMode( work, s14e_800C8CF8 );
+        return;
+    default:
+        work->act.field_14 = 5;
+        target->side = ENEMY_SIDE;
+        SetMode( work, s14e_800C8CF8 );
+        return;
+    }
+
+    if ( work->sn_dis > 800 )
+    {
+        target->captured = 0;
+    }
+
+    work->target->class |= ( TARGET_POWER | TARGET_SEEK );
+    work->vision.facedir = work->control.rot.vy;
+}
+
 
 void s14e_800C86D4( Work *work, int time )
 {
