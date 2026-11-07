@@ -461,8 +461,66 @@ void s14e_800CD734( Work *work )
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD764.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD858.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD9DC.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CDADC.s")
+void s14e_800CD9DC( Work *work )
+{
+    int temp_v0;
+
+    switch ( work->think3 )
+    {
+    case 4:
+        s14e_800CCB60( work );
+        if ( s14e_800CD08C( work ) )
+        {
+            work->think3 = 5;
+            work->count3 = 0;
+        }
+        break;
+    case 5:
+        temp_v0 = s14e_800CD184( work );
+        if ( temp_v0 < 0 )
+        {
+            work->think3 = 4;
+            work->count3 = 0;
+        }
+        else if ( temp_v0 > 0 )
+        {
+            work->think2 = 2;
+            work->think3 = 14;
+            work->count3 = 0;
+        }
+        break;
+    }
+
+    if ( work->sn_dis < 800 && GM_PlayerStance == STAND )
+    {
+        work->think2 = 2;
+        work->think3 = 10;
+        work->count3 = 0;
+        work->pad.press |= 0x10000;
+        work->pad.dir = work->sn_dir;
+    }
+
+    if ( work->vision.pad == 2 ) work->alert_level = 255;
+    ZAKO14SetGopointLast();
+}
+void s14e_800CDADC( Work *work )
+{
+    if ( work->think3 == 16 && s14e_800CD08C( work ) )
+    {
+        work->think2 = 2;
+        work->think3 = 14;
+        work->count3 = 0;
+    }
+
+    if ( work->sn_dis < 800 && GM_PlayerStance == STAND )
+    {
+        work->think2 = 2;
+        work->think3 = 10;
+        work->count3 = 0;
+        work->pad.press |= 0x10000;
+        work->pad.dir = work->sn_dir;
+    }
+}
 void s14e_800CDB78( Work *work )
 {
     switch ( work->think2 )
