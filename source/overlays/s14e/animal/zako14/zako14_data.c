@@ -1,32 +1,26 @@
 #include "animal/zako14/zako.h"
 
-int s14e_dword_800C3350 = 0x00140013;
-int s14e_dword_800C3354 = 0x0016000A;
-int s14e_dword_800C3358 = 0x00220009;
-int s14e_dword_800C335C = 0x00240023;
-int s14e_dword_800C3360 = 0x000D002D;
-int s14e_dword_800C3364 = 0x001A000C;
-int s14e_dword_800C3368 = 0x000E000F;
-int s14e_dword_800C336C = 0x001B0010;
-int s14e_dword_800C3370 = 0x002E0008;
-int s14e_dword_800C3374 = 0x00150013;
-int s14e_dword_800C3378 = 0x001F001E;
-int s14e_dword_800C337C = 0x00210020;
-int s14e_dword_800C3380 = 0x00130025;
-int s14e_dword_800C3384 = 0x00190013;
-int s14e_dword_800C3388 = 0x00020005;
-int s14e_dword_800C338C = 0x0004002A;
-int s14e_dword_800C3390 = 0x00280027;
-int s14e_dword_800C3394 = 0x00070006;
-int s14e_dword_800C3398 = 0x00030026;
-int s14e_dword_800C339C = 0x00110029;
-int s14e_dword_800C33A0 = 0x002B0012;
-int s14e_dword_800C33A4 = 0x00180017;
-int s14e_dword_800C33A8 = 0x001D001C;
-int s14e_dword_800C33AC = 0x00010000;
-int s14e_dword_800C33B0 = 0x00110033;
-int s14e_dword_800C33B4 = 0x002B0012;
-int s14e_dword_800C33B8 = 0x00000016;
+#include "enemy/grnad_e.h"
+#include "game/vibrate.h"
+
+int  s14e_800C6E08( Work *work );
+void s14e_800C7398( Work *work, int time );
+void s14e_800C7978( Work *work, int time );
+void s14e_800C7FA8( Work *work, int time );
+void s14e_800C8350( Work *work, int time );
+void s14e_800C8898( Work *work, int time );
+void s14e_800C8A10( Work *work, int time );
+void s14e_800C8AD8( Work *work, int time );
+
+short ActionTable[] = {
+    19, 20, 10, 22, 9, 34, 35, 36,
+    45, 13, 12, 26, 15, 14, 16, 27,
+    8, 46, 19, 21, 30, 31, 32, 33,
+    37, 19, 19, 25, 5, 2, 42, 4,
+    39, 40, 6, 7, 38, 3, 41, 17,
+    18, 43, 23, 24, 28, 29, 0, 1,
+    51, 17, 18, 43, 22,
+};
 int s14e_dword_800C33BC = 0x00000401;
 int s14e_dword_800C33C0 = 0x000004FF;
 int s14e_dword_800C33C4 = 0x0000FF6A;
@@ -84,7 +78,29 @@ const char s14e_dword_800DCA30[] = "FA-MAS/BULLET * 25";
 const char s14e_dword_800DCA44[] = "SOCOM/BULLET * 12";
 const char s14e_dword_800DCA58[] = "RATION";
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6A34.s")
+int s14e_800C6A34( Work *work )
+{
+    TARGET *target;
+
+    target = work->target;
+    if ( target->damaged & TARGET_CAPTURE )
+    {
+        if ( target->a_mode == 36 )
+        {
+            SetMode( work, s14e_800C7FA8 );
+        }
+        else
+        {
+            SetMode( work, s14e_800C8350 );
+        }
+
+        target->damaged = 0;
+        return 1;
+    }
+
+    return 0;
+}
+
 int s14e_800C6AC0( Work *work )
 {
     if (work->target->damaged & 0x20)
@@ -94,21 +110,105 @@ int s14e_800C6AC0( Work *work )
     return 0;
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6ADC.s")
+int s14e_800C6ADC( SVECTOR *vec )
+{
+    return ABS( vec->vx ) + ABS( vec->vy ) + ABS( vec->vz );
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6B18.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6D20.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6DB0.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6E08.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6E6C.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6F40.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6F94.s")
+int s14e_800C6F40( int from, int to )
+{
+    int diff;
+
+    if ( to < 0 ) return 0;
+    if ( from < 0 ) return 0;
+    diff = GV_DiffDirS( from, to );
+    if ( diff < -896 || diff > 896 ) return 0;
+    if ( diff >= 0 ) return 1;
+    return 2;
+}
+
+void s14e_800C6F94( Work *work )
+{
+    int h1, h2, ang, rotx;
+
+    h1 = GM_PlayerBody->objs->objs[ 6 ].world.t[ 1 ];
+    h2 = work->body.objs->objs[ 6 ].world.t[ 1 ];
+    ang = ratan2( work->sn_dis, h1 - h2 ) & 4095;
+    rotx = GV_NearExp8( work->adjust[ 2 ].vx, ang - 1024 );
+    work->adjust[ 2 ].vx = rotx;
+    work->adjust[ 6 ].vx = rotx;
+
+    if ( rotx < 0 )
+    {
+        work->adjust[ 7 ].vx = rotx * 3;
+    }
+    else
+    {
+        work->adjust[ 7 ].vx = rotx * 3 / 2;
+    }
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C701C.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C712C.s")
+void s14e_800C712C( Work *work )
+{
+    TARGET *target;
+
+    target = &work->attack;
+    GM_SetPowerTarget( target, POWER_CONST | POWER_EXPLODE, 5, 0, 3, &ZAKO14_ATTACK_FORCE );
+    GM_MoveTarget( target, &work->control.mov );
+    GM_PowerTarget( target );
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7194.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7398.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7550.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C77F8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7888.s")
+void s14e_800C77F8( Work *work, int time )
+{
+    if ( time == 0 )
+    {
+        work->act.field_14 = 3;
+        SetAction( work, 35, 4 );
+    }
+
+    if ( !s14e_800C6E08( work ) && work->body.is_end )
+    {
+        work->pad.field_8 = 0;
+        SetMode( work, s14e_800C8898 );
+    }
+}
+
+void s14e_800C7888( Work *work, int time )
+{
+    CONTROL *ctrl;
+
+    ctrl = &work->control;
+
+    work->target->class |= TARGET_FLAG;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+
+    if ( time == 0 ) SetAction( work, 16, 4 );
+
+    if ( !s14e_800C6E08( work ) )
+    {
+        if ( work->body.is_end || !( work->pad.press & 0x20 ) )
+        {
+            SetMode( work, s14e_800C7398 );
+        }
+        else
+        {
+            ctrl->turn.vy = work->sn_dir;
+            ctrl->step.vx = 0;
+            ctrl->step.vz = 0;
+            work->vision.facedir = work->control.rot.vy;
+        }
+    }
+}
+
 
 void s14e_800C7970( void )
 {
@@ -116,7 +216,22 @@ void s14e_800C7970( void )
 }
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7978.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7AEC.s")
+void s14e_800C7AEC( Work *work, int time )
+{
+    work->target->class |= TARGET_FLAG;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+
+    if ( time == 0 )
+    {
+        SetAction( work, 4, 0 );
+        s14e_800CA890( work, 3 );
+        GM_ConfigMotionAdjust( &work->body, work->adjust );
+    }
+
+    s14e_800C6F94( work );
+    if ( !s14e_800C6E08( work ) ) SetModeNoAdjust( work, s14e_800C7978 );
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7B9C.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7CD0.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7E28.s")
@@ -125,8 +240,98 @@ void s14e_800C7970( void )
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C82D0.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8350.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C86D4.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8748.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8898.s")
+void s14e_800C8748( Work *work, int time )
+{
+    CONTROL *control;
+    int start;
+
+    control = &work->control;
+
+    work->act.field_1E = 0;
+    work->vision.length = 0;
+    work->act_status |= 0x8;
+
+    if ( time == 0 )
+    {
+        SetAction( work, 32, 4 );
+        work->target->faint = 0;
+    }
+
+    if ( !s14e_800C6E08( work ) )
+    {
+        start = 10;
+
+        if ( time == start )
+        {
+            work->act.field_14 = 1;
+            SetAction( work, 37, 4 );
+        }
+        else
+        {
+            work->target->class |= TARGET_FLAG;
+        }
+
+        if ( time == ( start + 24 ) )
+        {
+            GM_SeSet( &control->mov, SE_ENEMY_COLLAPSE );
+        }
+
+        if ( time == ( start + 46 ) )
+        {
+            GM_SeSet( &control->mov, SE_HIT_FLOOR );
+        }
+
+        if ( time >= ( start + 50 ) && work->body.is_end )
+        {
+            SetMode( work, s14e_800C8898 );
+        }
+    }
+}
+
+void s14e_800C8898( Work *work, int time )
+{
+    int x;
+
+    work->act_status |= 0x20;
+
+    if ( time == 0 )
+    {
+        if ( work->act.field_14 < 3 )
+        {
+            if ( work->act.field_14 == 1 )
+            {
+                SetAction( work, 41, 4 );
+            }
+            else
+            {
+                SetAction( work, 39, 4 );
+            }
+        }
+        else
+        {
+            SetAction( work, 40, 4 );
+        }
+
+        x = work->control.mov.vx % 30;
+        if ( x < 0 ) x = -x;
+        work->field_B5A = x + 10;
+    }
+
+    if ( s14e_800C6AC0( work ) )
+    {
+        SetMode( work, s14e_800C8A10 );
+    }
+    else if ( work->field_B5A < time )
+    {
+        if ( work->target->faint <= 0 )
+        {
+            work->target->faint = work->param.faint;
+        }
+
+        SetMode( work, s14e_800C8AD8 );
+    }
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8A10.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8AD8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8BE8.s")

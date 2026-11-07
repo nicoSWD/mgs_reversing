@@ -213,8 +213,6 @@ typedef struct _PATTERN {
 
 /*---------------------------------------------------------------------------*/
 
-/*
-
 static inline void SetAction( Work *work, int action, int interp )
 {
     extern short ActionTable[];
@@ -268,8 +266,6 @@ static inline void UnsetMode( Work *work )
     work->act.motion2 = 0;
     work->control.turn.vx = work->control.turn.vz = 0;
 }
-
-*/
 
 /*---------------------------------------------------------------------------*/
 
