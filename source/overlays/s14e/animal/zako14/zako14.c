@@ -16,14 +16,9 @@ static int ChaseDis[] = {
     8000, 8000, 8000, 8000,
 };
 
-int s14e_dword_800C3330 = 0x000F012C;
-int s14e_dword_800C3334 = 0x003C001E;
-
-int s14e_dword_800C3338 = 0x0000005A;
-int s14e_dword_800C333C = 0x75307D01;
-
-const char s14e_dword_800DC908[] = "Err Err Err  Set time Over\n";
-const char s14e_dword_800DC924[] = "Err Err Err  Set Dir Over\n";
+static u_short time_data[] = {
+    300, 15, 30, 60, 90, 0, 32001, 30000,
+};
 
 /*----------------------------------------------------------------------------*/
 
@@ -272,13 +267,99 @@ void s14e_800C609C( Work *work )
     s14e_800C6028( work );
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C60BC.s")
-int s14e_800C60BC( Work *work );
+int s14e_800C60BC( Work *work )
+{
+    HZD_PAT *route;
+    HZD_PTP *point;
+    int i;
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6158.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C61B0.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6208.s")
-void s14e_800C6208( Work *work );
+    route = work->control.map->hzd->def->routes;
+    route += work->param.root;
+
+    work->n_nodes = route->n_points;
+    if ( work->n_nodes <= 0 ) return -1;
+
+    point = route->points;
+    for ( i = 0; i < work->n_nodes; i++ )
+    {
+        work->nodes[ i ].vx = point->x;
+        work->nodes[ i ].vy = point->y;
+        work->nodes[ i ].vz = point->z;
+        work->nodes[ i ].pad = point->command;
+        point++;
+    }
+
+    return 0;
+}
+
+int s14e_800C6158( char *opt, short *data )
+{
+    int count;
+    char *str;
+
+    count = 0;
+    while ( ( str = GCL_NextStr() ) != NULL )
+    {
+        *data = GCL_StrToInt( str );
+        data++;
+        count++;
+    }
+    return count;
+}
+
+int s14e_800C61B0( char *opt, int *data )
+{
+    int count;
+    char *str;
+
+    count = 0;
+    while ( ( str = GCL_NextStr() ) != NULL )
+    {
+        *data = GCL_StrToInt( str );
+        data++;
+        count++;
+    }
+
+    return count;
+}
+
+int s14e_800C6208( Work *work )
+{
+    int i;
+    char *opt;
+
+    for ( i = 0; i < 8; i++ )
+    {
+        work->acttime[ i ] = time_data[ i ];
+    }
+
+    opt = GCL_GetOption( 't' );
+    if ( opt )
+    {
+        if ( s14e_800C61B0( opt, &work->acttime[ 1 ] ) > 4 )
+        {
+            printf( "Err Err Err  Set time Over\n" );
+            return -1;
+        }
+    }
+
+    for ( i = 0; i < 4; i++ )
+    {
+        work->dir[ i ] = i * 1024;
+    }
+
+    opt = GCL_GetOption( 'i' );
+    if ( opt )
+    {
+        if ( s14e_800C6158( opt, work->dir ) > 4 )
+        {
+            printf( "Err Err Err  Set Dir Over\n" );
+            return -1;
+        }
+    }
+
+    return 0;
+}
 
 void s14e_800C62E0( Work *work, int name, int where )
 {
