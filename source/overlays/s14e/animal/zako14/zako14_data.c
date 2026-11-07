@@ -3,10 +3,19 @@
 #include "enemy/grnad_e.h"
 #include "game/vibrate.h"
 
+extern SVECTOR   ZAKO14_PlayerPosition;
+extern COMMANDER ZAKO14Command;
+extern TOP       ZAKO14TOPCOMMAND;
+extern int       ZAKO14_Unknown;
+extern int       ZAKO14_GameFlag;
+extern int       ZAKO14_PlayerAddress;
+extern int       ZAKO14_PlayerMap;
+
 int s14e_800C6A34( Work *work );
 int s14e_800C6AC0( Work *work );
 int s14e_800C6ADC( SVECTOR *vec );
 int s14e_800C6B18( Work *work );
+int s14e_800C6D20( Work *work );
 int s14e_800C6DB0( Work *work );
 int s14e_800C6E08( Work *work );
 void s14e_800C6E6C( Work *work );
@@ -431,8 +440,47 @@ int s14e_800C7194( Work *work )
     return 0;
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7398.s")
+void s14e_800C7398( Work *work, int time )
+{
+    work->target->class |= TARGET_FLAG;
+    work->act_status |= 0x1;
+    if ( ZAKO14Command.alert_mode == 0 ) work->target->class |= TARGET_C4;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+
+    if ( time == 0 ) SetAction( work, 0, 4 );
+
+    if ( s14e_800C6E08( work ) || s14e_800C6D20( work ) || s14e_800C7194( work ) )
+    {
+        UnsetMode( work );
+        return;
+    }
+
+    if ( work->pad.dir >= 0 )
+    {
+        if ( GV_DiffDirAbs( work->control.rot.vy, work->pad.dir ) < 256 )
+        {
+            if ( work->pad.field_4 & 1 )
+            {
+                SetAction( work, 2, 4 );
+            }
+            else
+            {
+                SetAction( work, 1, 4 );
+            }
+
+            SetMode( work, s14e_800C7550 );
+        }
+        else
+        {
+            work->control.turn.vy = work->pad.dir;
+        }
+    }
+
+    work->vision.facedir = work->control.rot.vy;
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7550.s")
+
 void s14e_800C77F8( Work *work, int time )
 {
     if ( time == 0 )
@@ -481,7 +529,66 @@ void s14e_800C7970( Work *work, int time )
     /* do nothing */
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7978.s")
+void s14e_800C7978( Work *work, int time )
+{
+    int press;
+
+    work->target->class |= TARGET_FLAG;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+
+    press = work->pad.press;
+
+    if ( time == 0 )
+    {
+        if ( press & 0x10000 )
+        {
+            SetAction( work, 3, 4 );
+        }
+        else
+        {
+            SetAction( work, 5, 4 );
+        }
+
+        GM_ConfigMotionAdjust( &work->body, work->adjust );
+    }
+
+    s14e_800C6F94( work );
+    if ( s14e_800C6E08( work ) ) return;
+
+    if ( !( press & 0x30000 ) )
+    {
+        SetMode( work, s14e_800C7398 );
+        return;
+    }
+
+    if ( press & 0x40000 )
+    {
+        SetModeNoAdjust( work, s14e_800C7AEC );
+        return;
+    }
+
+    if ( press & 0x80000 )
+    {
+        SetMode( work, s14e_800C7B9C );
+        return;
+    }
+
+    if ( press & 0x100000 )
+    {
+        SetModeNoAdjust( work, s14e_800C7CD0 );
+        return;
+    }
+
+    if ( press & 0x200000 )
+    {
+        SetModeNoAdjust( work, s14e_800C7E28 );
+        return;
+    }
+
+    work->control.turn.vy = work->pad.dir;
+    work->vision.facedir = work->control.rot.vy;
+}
+
 void s14e_800C7AEC( Work *work, int time )
 {
     work->target->class |= TARGET_FLAG;
@@ -498,7 +605,50 @@ void s14e_800C7AEC( Work *work, int time )
     if ( !s14e_800C6E08( work ) ) SetModeNoAdjust( work, s14e_800C7978 );
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7B9C.s")
+void s14e_800C7B9C( Work *work, int time )
+{
+    SVECTOR *rot;
+
+    work->target->class |= TARGET_FLAG;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+
+    if ( time == 0 )
+    {
+        SetAction( work, 5, 4 );
+        work->control.turn.vy = work->pad.dir;
+    }
+
+    if ( s14e_800C6E08( work ) ) return;
+    if ( time < 16 ) return;
+
+    rot = &work->control.rot;
+    if ( time < 31 )
+    {
+        rot->vy = ( rot->vy - 32 ) & 4095;
+    }
+    else if ( time < 61 )
+    {
+        rot->vy = ( rot->vy + 32 ) & 4095;
+    }
+    else if ( time < 76 )
+    {
+        rot->vy = ( rot->vy - 32 ) & 4095;
+    }
+
+    if ( !( time & 1 ) )
+    {
+        GM_SeSet( &work->control.mov, 46 );
+        s14e_800CA890( work, 3 );
+    }
+
+    if ( time >= 77 )
+    {
+        SetMode( work, s14e_800C7978 );
+    }
+
+    work->control.turn.vy = rot->vy;
+}
+
 void s14e_800C7CD0( Work *work, int time )
 {
     work->target->class |= TARGET_FLAG;
@@ -571,6 +721,7 @@ void s14e_800C7F00( Work *work, int time )
 }
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7FA8.s")
+
 void s14e_800C82D0( Work *work )
 {
     SVECTOR pos;
@@ -582,6 +733,7 @@ void s14e_800C82D0( Work *work )
 }
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8350.s")
+
 void s14e_800C86D4( Work *work, int time )
 {
     if ( time == 0 )
@@ -714,7 +866,44 @@ void s14e_800C8A10( Work *work, int time )
     }
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8AD8.s")
+void s14e_800C8AD8( Work *work, int time )
+{
+    work->act.field_1E = 0;
+    work->act_status |= 0x8;
+
+    if ( time == 0 )
+    {
+        if ( work->act.field_14 < 3 )
+        {
+            if ( work->field_B5A >= 150 )
+            {
+                SetAction( work, 44, 4 );
+            }
+            else
+            {
+                SetAction( work, 42, 4 );
+            }
+        }
+        else
+        {
+            if ( work->field_B5A >= 150 )
+            {
+                SetAction( work, 45, 4 );
+            }
+            else
+            {
+                SetAction( work, 43, 4 );
+            }
+        }
+    }
+
+    if ( work->body.is_end )
+    {
+        work->param.unknown = work->target->vital;
+        SetMode( work, s14e_800C7398 );
+    }
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8BE8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8CF8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C924C.s")
