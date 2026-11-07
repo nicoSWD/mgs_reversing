@@ -635,7 +635,7 @@ void s14e_800C7B9C( Work *work, int time )
 
     if ( !( time & 1 ) )
     {
-        GM_SeSet( &work->control.mov, 46 );
+        GM_SeSet( &work->control.mov, SE_SHOT_E02 );
         s14e_800CA890( work, 3 );
     }
 
@@ -1108,11 +1108,11 @@ void s14e_800C8BE8( Work *work, int time )
     if ( time == 0 )
     {
         SetAction( work, 15, 4 );
-        GM_SeSet( &work->control.mov, 141 );
+        GM_SeSet( &work->control.mov, SE_V_ENE_PUNCHED );
 
         if ( target->a_mode == 3 )
         {
-            GM_SeSet( &work->control.mov, 52 );
+            GM_SeSet( &work->control.mov, SE_PUNCHIT1 );
             s14e_800CA354( work );
         }
         else
@@ -1649,7 +1649,7 @@ void s14e_800C9DE8( Work *work, int time )
     }
 }
 
-static void s14e_800C9FC0( Work *work ) 
+static void s14e_800C9FC0( Work *work )
 {
     MATRIX world;
 
@@ -1920,7 +1920,7 @@ int s14e_800CA890( Work *work, int index )
 int s14e_800CA8D8( Work *work, void *func )
 {
     int i;
-    
+
     for ( i = 0; i < 8; i++ )
     {
         if ( work->putchar[ i ] == func )
@@ -2245,4 +2245,3 @@ void s14e_800CB128( Work *work )
         control->r_sphere = GV_NearExp2( control->r_sphere, work->act.field_1C );
     }
 }
-

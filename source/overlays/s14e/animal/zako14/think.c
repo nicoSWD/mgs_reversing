@@ -190,7 +190,7 @@ int s14e_800CD024( Work *work )
 {
     if ( work->count3 == 0 )
     {
-        GM_SeSet( &work->control.mov, 83 );
+        GM_SeSet( &work->control.mov, SE_EXCLAMATION );
         s14e_800CA49C( work, 0 );
     }
 
