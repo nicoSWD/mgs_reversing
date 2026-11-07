@@ -1198,9 +1198,94 @@ void s14e_800CA3B8( Work *work )
     info.time = 900;
     NewItemPut( pos, &step, &info );
 }
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA49C.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA538.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA5D0.s")
+void s14e_800CA49C( Work *work, int mark )
+{
+    MATRIX *world;
+
+    if ( !( work->control.map->index & GM_PlayerMap ) ) return;
+    world = &work->body.objs->objs[ 6 ].world;
+
+    if ( mark == 0 ) GM_SeSet( &work->control.mov, SE_EXCLAMATION );
+    if ( work->mark_time != 0 ) GV_DestroyActor( work->mark );
+
+    work->mark = AN_HeadMark( world, mark );
+    work->mark_time = 30;
+}
+
+void s14e_800CA538( Work *work )
+{
+    int action, frame, l, r;
+
+    action = work->act.motion1;
+    frame = work->m_ctrl.info1.frame;
+    l = 160 + ( work->param.index % 4 ) * 2;
+    r = 160 + ( work->param.index % 4 ) * 2 + 1;
+
+    if ( action == 1 )
+    {
+        if ( frame == 22 )
+        {
+            GM_SeSet( &work->control.mov, r );
+        }
+        else if ( frame == 11 )
+        {
+            GM_SeSet( &work->control.mov, l );
+        }
+    }
+    else if ( action == 2 )
+    {
+        if ( frame == 16 )
+        {
+            GM_SeSet( &work->control.mov, r );
+        }
+        else if ( frame == 8 )
+        {
+            GM_SeSet( &work->control.mov, l );
+        }
+    }
+}
+void s14e_800CA5D0( Work *work )
+{
+    int frame;
+
+    if ( ZAKO14Command.alert_mode == 1 ) return;
+    if ( !( work->control.map->index & GM_PlayerMap ) ) return;
+
+    if ( work->act.motion2 == 20 )
+    {
+        if ( work->m_ctrl.info2.frame == 31 )
+        {
+            AN_Breath( &work->body.objs->objs[ 6 ].world );
+        }
+    }
+    else if ( work->act.motion2 == 22 )
+    {
+        frame = work->m_ctrl.info2.frame;
+        if ( frame == 15 || frame == 35 || frame == 50 || frame == 60 ||
+             frame == 70 || frame == 74 || frame == 78 )
+        {
+            AN_Breath( &work->body.objs->objs[ 6 ].world );
+        }
+    }
+    else if ( work->act.motion2 == 19 )
+    {
+        frame = work->m_ctrl.info2.frame;
+        if ( frame == 30  || frame == 40 || frame == 50 || frame == 60 ||
+             frame == 70  || frame == 80 || frame == 90 || frame == 95 ||
+             frame == 100 || frame == 105 )
+        {
+            AN_Breath( &work->body.objs->objs[ 6 ].world );
+        }
+    }
+    else
+    {
+        if ( ( GV_Time % 64 ) == ( work->param.index * 16 ) )
+        {
+            AN_Breath( &work->body.objs->objs[ 6 ].world );
+        }
+    }
+}
+
 
 void s14e_800CA718( Work *work )
 {
