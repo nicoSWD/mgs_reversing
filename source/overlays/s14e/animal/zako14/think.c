@@ -12,6 +12,7 @@ extern int       ZAKO14_PlayerAddress;
 extern int       ZAKO14_PlayerMap;
 
 void s14e_800CA49C( Work *work, int mark );
+void s14e_800CDB78( Work *work );
 
 static SVECTOR s14e_dword_800C34D8[] = {
     { 5750, 0, -1000 },
@@ -351,8 +352,35 @@ int s14e_800CD440( Work *work )
     return 0;
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD4A8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD514.s")
+int s14e_800CD4A8( Work *work )
+{
+    int count;
+
+    count = work->count3;
+    work->pad.press |= 0x10000;
+    work->pad.dir = work->sn_dir;
+
+    if ( count < 10 )
+    {
+        if ( !( count & 1 ) ) work->pad.press |= 0x40000;
+    }
+    else if ( count > 19 )
+    {
+        return 1;
+    }
+
+    work->count3++;
+    return 0;
+}
+int s14e_800CD514( Work *work )
+{
+    if ( work->count3 > 200 ) return 1;
+
+    work->pad.press |= 0x10000;
+    work->pad.dir = work->sn_dir;
+    work->count3++;
+    return 0;
+}
 int s14e_800CD55C( Work *work )
 {
     if ( work->sn_dis < 800 )
@@ -391,11 +419,34 @@ const int s14e_dword_800DD018 = 0x800CDBF0;
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD5A4.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD6C4.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD714.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD734.s")
+void s14e_800CD714( Work *work )
+{
+    s14e_800CCC04( work );
+}
+
+void s14e_800CD734( Work *work )
+{
+    if ( work->think3 == 0 )
+    {
+        s14e_800CD714( work );
+    }
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD764.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD858.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD9DC.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CDADC.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CDB78.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CDC08.s")
+void s14e_800CDC08( Work *work )
+{
+    work->pad.dir = -1;
+    work->control.radar_atr = RADAR_VISIBLE | RADAR_SIGHT;
+    work->pad.press = 0;
+    work->alert_level = 255;
+
+    if ( work->think1 == 0 )
+    {
+        work->act.field_1E = 1;
+        s14e_800CDB78( work );
+    }
+}
