@@ -2,6 +2,7 @@
 
 #include "enemy/grnad_e.h"
 #include "game/vibrate.h"
+#include <stdio.h>
 #include "enemy/asiato.h"
 #include "anime/animconv/anime.h"
 #include "enemy/l_sight.h"
@@ -325,46 +326,7 @@ int s14e_800C701C( Work *work )
     return GM_PowerTarget( target );
 }
 
-const char s14e_dword_800DC9E4[] = " vx=%d vy=%d vz=%d \n";
-const char s14e_dword_800DC9FC[] = {0x0, 0x0, 0x0, 0x0};
-const int s14e_dword_800DCA00 = 0x800C8DA4;
-const int s14e_dword_800DCA04 = 0x800C8DF4;
-const int s14e_dword_800DCA08 = 0x800C8EBC;
-const int s14e_dword_800DCA0C = 0x800C8E78;
-const int s14e_dword_800DCA10 = 0x800C8F00;
-const int s14e_dword_800DCA14 = 0x800C8F34;
-const int s14e_dword_800DCA18 = 0x800C8F8C;
-const int s14e_dword_800DCA1C = 0x800C8FD4;
-const int s14e_dword_800DCA20 = 0x800C9014;
-const int s14e_dword_800DCA24 = 0x800C8FF4;
-const int s14e_dword_800DCA28 = 0x800C9040;
-const int s14e_dword_800DCA2C = 0x800C9040;
 
-static void s14e_800CA538( Work *work );
-static void s14e_800CA5D0( Work *work );
-static void s14e_800CA718( Work *work );
-static void s14e_800CA754( Work *work );
-
-static SVECTOR BloodPos = {0, 0, 100};
-static SVECTOR BloodRot = {-1024, 0, 0};
-
-static SVECTOR FogPos = {0, 0, 100};
-static SVECTOR FogRot = {-1024, 0, 0};
-
-static char *ItemText[] = {
-    "RATION",
-    "SOCOM/BULLET * 12",
-    "FA-MAS/BULLET * 25",
-};
-
-static void *PutChars[] = {
-    s14e_800CA538,
-    s14e_800CA5D0,
-    s14e_800CA718,
-    s14e_800CA754,
-};
-
-static SVECTOR BulletPos = {5, -500, 80};
 
 void s14e_800C712C( Work *work )
 {
@@ -1164,7 +1126,195 @@ void s14e_800C8BE8( Work *work, int time )
         SetMode( work, s14e_800C7398 );
     }
 }
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8CF8.s")
+void s14e_800C8CF8( Work *work, int time )
+{
+    ACT *act;
+    CONTROL *control;
+    int height;
+
+    work->act.field_1E = 0;
+    work->act_status |= 0x8;
+
+    act = &work->act;
+    control = &work->control;
+    control->step = work->target->force;
+    printf( " vx=%d vy=%d vz=%d \n", control->step.vx, control->step.vy, control->step.vz );
+
+    if ( time == 0 )
+    {
+        switch( act->field_14 )
+        {
+        case 0:
+            GM_SeSet( &control->mov, SE_PUNCH_HIT );
+            SetAction( work, 34, 4 );
+            GM_SeSet( &control->mov, SE_V_ENE_PUNCHED );
+            s14e_800CA2E4( work, 5, 0 );
+            work->field_B5A = 17;
+            break;
+        case 1:
+            SetAction( work, 37, 4 );
+
+            if ( work->target->vital <= 0 )
+            {
+                if ( GM_Weapon == WP_Rifle )
+                {
+                    s14e_800CA2E4( work, 6, 2 );
+                }
+                else
+                {
+                    s14e_800CA2E4( work, 6, 1 );
+                }
+            }
+            else
+            {
+                s14e_800CA2E4( work, 5, 0 );
+            }
+
+            GM_SeSet( &control->mov, SE_V_ENE_PUNCHED );
+            work->field_B5A = 46;
+            break;
+        case 3:
+            GM_SeSet( &control->mov, SE_EDMG01 );
+            SetAction( work, 35, 4 );
+            s14e_800CA2E4( work, 5, 0 );
+            work->field_B5A = 17;
+            break;
+        case 2:
+            GM_SeSet( &control->mov, SE_V_ENE_THROWN );
+            SetAction( work, 36, 4 );
+            s14e_800CA2E4( work, 5, 0 );
+            work->field_B5A = 22;
+            break;
+        case 4:
+            GM_SeSet( &control->mov, SE_V_ENE_SNAPPED );
+            SetAction( work, 29, 4 );
+            work->field_B5A = 67;
+            break;
+        case 5:
+            SetAction( work, 30, 4 );
+            work->field_B5A = 15;
+            break;
+        }
+    }
+
+    switch( act->field_14 )
+    {
+    case 0:
+        if ( time < 12 )
+        {
+            control->turn.vy += 170;
+        }
+
+        if ( time > 6 && time < 30 )
+        {
+            s14e_800C712C( work );
+        }
+
+        if ( time < 20 )
+        {
+            work->control.hzd_height = -32767;
+        }
+        break;
+    case 1:
+        if ( time == 24 )
+        {
+            GM_SeSet( &control->mov, SE_ENEMY_COLLAPSE );
+        }
+        break;
+    case 3:
+        if ( time > 6 && time < 30 )
+        {
+            s14e_800C712C( work );
+        }
+
+        if ( time < 15 )
+        {
+            control->hzd_height = -32767;
+        }
+        break;
+    case 2:
+        if ( time > 6 && time < 30 )
+        {
+            s14e_800C712C( work );
+        }
+
+        if ( time < 20 )
+        {
+            control->hzd_height = -32767;
+        }
+        break;
+    case 4:
+    case 5:
+        work->act_status |= 0x4;
+        break;
+    }
+
+    if ( time > 16 && control->grounded != 0 )
+    {
+        control->step = DG_ZeroVector;
+    }
+
+    if ( time == work->field_B5A )
+    {
+        height = control->mov.vy - control->levels[ 0 ];
+        if ( height < 2000 )
+        {
+            GM_SeSet( &control->mov, SE_DOWN0002 );
+            GM_SetNoise( 100, 4, &control->mov );
+            s14e_800CA2E4( work, 6, 0 );
+        }
+        else if ( height > 3000 || control->levels[ 0 ] < 0 ||
+                  control->mov.vz > 2000 ||
+                  control->mov.vx < -4000 || control->mov.vx > 4000 )
+        {
+            work->target->vital = 0;
+            SetMode( work, s14e_800C924C );
+            return;
+        }
+    }
+
+    if ( work->body.is_end )
+    {
+        work->act.field_1E = 1;
+        work->target->force = DG_ZeroVector;
+
+        if ( work->target->vital <= 0 )
+        {
+            SetMode( work, s14e_800C94A8 );
+        }
+        else
+        {
+            SetMode( work, s14e_800C8898 );
+        }
+    }
+}
+
+static void s14e_800CA538( Work *work );
+static void s14e_800CA5D0( Work *work );
+static void s14e_800CA718( Work *work );
+static void s14e_800CA754( Work *work );
+
+static SVECTOR BloodPos = {0, 0, 100};
+static SVECTOR BloodRot = {-1024, 0, 0};
+
+static SVECTOR FogPos = {0, 0, 100};
+static SVECTOR FogRot = {-1024, 0, 0};
+
+static char *ItemText[] = {
+    "RATION",
+    "SOCOM/BULLET * 12",
+    "FA-MAS/BULLET * 25",
+};
+
+static void *PutChars[] = {
+    s14e_800CA538,
+    s14e_800CA5D0,
+    s14e_800CA718,
+    s14e_800CA754,
+};
+
+static SVECTOR BulletPos = {5, -500, 80};
+
 void s14e_800C924C( Work *work, int time )
 {
     CONTROL *control;
