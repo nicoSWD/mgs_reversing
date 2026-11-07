@@ -10,6 +10,10 @@ void s14e_800C7FA8( Work *work, int time );
 void s14e_800C8350( Work *work, int time );
 void s14e_800C8898( Work *work, int time );
 void s14e_800C8A10( Work *work, int time );
+void s14e_800C8BE8( Work *work, int time );
+void s14e_800C8CF8( Work *work, int time );
+void s14e_800C86D4( Work *work, int time );
+void s14e_800C8748( Work *work, int time );
 void s14e_800C8AD8( Work *work, int time );
 
 short ActionTable[] = {
@@ -45,38 +49,6 @@ int s14e_dword_800C340C = 0x800CA754;
 int s14e_dword_800C3410 = 0xFE0C0005;
 int s14e_dword_800C3414 = 0x00000050;
 
-const int s14e_dword_800DC9A8 = 0x800C6BFC;
-const int s14e_dword_800DC9AC = 0x800C6C74;
-const int s14e_dword_800DC9B0 = 0x800C6B84;
-const int s14e_dword_800DC9B4 = 0x800C6BE4;
-const int s14e_dword_800DC9B8 = 0x800C6CAC;
-const int s14e_dword_800DC9BC = 0x800C6D00;
-const int s14e_dword_800DC9C0 = 0x800C6D00;
-const int s14e_dword_800DC9C4 = 0x800C6CC8;
-const int s14e_dword_800DC9C8 = 0x800C6CDC;
-const char s14e_dword_800DC9CC[] = {'8', 0xff, 0xe8, 0x3};
-const char s14e_dword_800DC9D0[] = {'X', 0x2, 0x0, 0x0};
-const char s14e_dword_800DC9D4[] = {0x5, 0x0, 0x0, 0x0};
-const char s14e_dword_800DC9D8[] = "d";
-const char s14e_dword_800DC9DC[] = {0x90, 0x1, 0xe8, 0x3};
-const char s14e_dword_800DC9E0[] = {0x90, 0x1, 0x0, 0x0};
-const char s14e_dword_800DC9E4[] = " vx=%d vy=%d vz=%d \n";
-const char s14e_dword_800DC9FC[] = {0x0, 0x0, 0x0, 0x0};
-const int s14e_dword_800DCA00 = 0x800C8DA4;
-const int s14e_dword_800DCA04 = 0x800C8DF4;
-const int s14e_dword_800DCA08 = 0x800C8EBC;
-const int s14e_dword_800DCA0C = 0x800C8E78;
-const int s14e_dword_800DCA10 = 0x800C8F00;
-const int s14e_dword_800DCA14 = 0x800C8F34;
-const int s14e_dword_800DCA18 = 0x800C8F8C;
-const int s14e_dword_800DCA1C = 0x800C8FD4;
-const int s14e_dword_800DCA20 = 0x800C9014;
-const int s14e_dword_800DCA24 = 0x800C8FF4;
-const int s14e_dword_800DCA28 = 0x800C9040;
-const int s14e_dword_800DCA2C = 0x800C9040;
-const char s14e_dword_800DCA30[] = "FA-MAS/BULLET * 25";
-const char s14e_dword_800DCA44[] = "SOCOM/BULLET * 12";
-const char s14e_dword_800DCA58[] = "RATION";
 
 int s14e_800C6A34( Work *work )
 {
@@ -115,7 +87,95 @@ int s14e_800C6ADC( SVECTOR *vec )
     return ABS( vec->vx ) + ABS( vec->vy ) + ABS( vec->vz );
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6B18.s")
+int s14e_800C6B18( Work *work )
+{
+    TARGET *target;
+
+    target = work->target;
+    if ( !( target->damaged & TARGET_POWER ) ) return 0;
+
+    switch ( target->a_mode )
+    {
+    case 3:
+        target->force = DG_ZeroVector;
+        if ( target->faint <= 0 )
+        {
+            work->act.field_14 = 1;
+            SetMode( work, s14e_800C8CF8 );
+        }
+        else
+        {
+            SetMode( work, s14e_800C8BE8 );
+        }
+        break;
+    case 4:
+        work->act.field_14 = 0;
+        SetMode( work, s14e_800C8CF8 );
+        break;
+    case 1:
+        target->force = DG_ZeroVector;
+        if ( target->vital <= 0 || work->param.unknown - target->vital >= 192 )
+        {
+            work->act.field_14 = 1;
+            SetMode( work, s14e_800C8CF8 );
+        }
+        else
+        {
+            SetMode( work, s14e_800C8BE8 );
+        }
+        break;
+    case 2:
+        if ( s14e_800C6ADC( &target->force ) < 100 )
+        {
+            work->act.field_14 = 3;
+        }
+        else
+        {
+            work->act.field_14 = 2;
+        }
+        SetMode( work, s14e_800C8CF8 );
+        break;
+    case 5:
+        work->act.field_14 = 3;
+        SetMode( work, s14e_800C8CF8 );
+        break;
+    case 8:
+        SetMode( work, s14e_800C86D4 );
+        break;
+    case 9:
+        SetMode( work, s14e_800C8748 );
+        break;
+    }
+
+    target->damage = 0;
+    target->damaged = 0;
+    return 1;
+}
+
+const char s14e_dword_800DC9CC[] = {'8', 0xff, 0xe8, 0x3};
+const char s14e_dword_800DC9D0[] = {'X', 0x2, 0x0, 0x0};
+const char s14e_dword_800DC9D4[] = {0x5, 0x0, 0x0, 0x0};
+const char s14e_dword_800DC9D8[] = "d";
+const char s14e_dword_800DC9DC[] = {0x90, 0x1, 0xe8, 0x3};
+const char s14e_dword_800DC9E0[] = {0x90, 0x1, 0x0, 0x0};
+const char s14e_dword_800DC9E4[] = " vx=%d vy=%d vz=%d \n";
+const char s14e_dword_800DC9FC[] = {0x0, 0x0, 0x0, 0x0};
+const int s14e_dword_800DCA00 = 0x800C8DA4;
+const int s14e_dword_800DCA04 = 0x800C8DF4;
+const int s14e_dword_800DCA08 = 0x800C8EBC;
+const int s14e_dword_800DCA0C = 0x800C8E78;
+const int s14e_dword_800DCA10 = 0x800C8F00;
+const int s14e_dword_800DCA14 = 0x800C8F34;
+const int s14e_dword_800DCA18 = 0x800C8F8C;
+const int s14e_dword_800DCA1C = 0x800C8FD4;
+const int s14e_dword_800DCA20 = 0x800C9014;
+const int s14e_dword_800DCA24 = 0x800C8FF4;
+const int s14e_dword_800DCA28 = 0x800C9040;
+const int s14e_dword_800DCA2C = 0x800C9040;
+const char s14e_dword_800DCA30[] = "FA-MAS/BULLET * 25";
+const char s14e_dword_800DCA44[] = "SOCOM/BULLET * 12";
+const char s14e_dword_800DCA58[] = "RATION";
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6D20.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6DB0.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6E08.s")
