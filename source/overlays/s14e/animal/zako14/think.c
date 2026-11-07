@@ -459,7 +459,43 @@ void s14e_800CD734( Work *work )
     }
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD764.s")
+void s14e_800CD764( Work *work )
+{
+    switch ( work->think3 )
+    {
+    case 1:
+        if ( !s14e_800CCF84( work ) ) break;
+        s14e_800CCC04( work );
+
+        if ( ZAKO14Command.alert_mode != 0 )
+        {
+            work->pad.sound = 246;
+        }
+        else
+        {
+            work->pad.sound = 240;
+        }
+
+        work->alert_level = 255;
+        break;
+    case 2:
+        if ( !s14e_800CD024( work ) ) break;
+        work->think1 = 0;
+        work->think2 = 3;
+        work->think3 = 16;
+        work->count3 = 0;
+        work->pad.field_4 = 1;
+        work->pad.sound = 240;
+        work->alert_level = 255;
+        break;
+    case 3:
+        if ( !s14e_800CD024( work ) ) break;
+        s14e_800CCC04( work );
+        work->pad.sound = 240;
+        work->alert_level = 255;
+        break;
+    }
+}
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD858.s")
 void s14e_800CD9DC( Work *work )
 {
