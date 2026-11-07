@@ -756,7 +756,89 @@ void s14e_800C7F00( Work *work, int time )
     }
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7FA8.s")
+void s14e_800C7FA8( Work *work, int time )
+{
+    TARGET *target;
+    CONTROL *control;
+    int height;
+
+    target = work->target;
+    control = &work->control;
+
+    work->act.field_1E = 0;
+    work->act_status |= 0x8;
+
+    if ( time == 0 )
+    {
+        work->act.field_14 = 6;
+        SetAction( work, 31, 4 );
+    }
+
+    if ( time > 7 && time < 20 )
+    {
+        s14e_800C712C( work );
+    }
+
+    if ( work->act.motion1 == 31 )
+    {
+        if ( time == 22 )
+        {
+            height = control->mov.vy - control->levels[ 0 ];
+            if ( height < 2000 )
+            {
+                GM_SeSet( &control->mov, SE_V_ENE_PUNCHED );
+                GM_SeSet( &control->mov, SE_DOWN0002 );
+                s14e_800CA2E4( work, 6, 0 );
+                GM_SetNoise( 100, 4, &control->mov );
+            }
+            else if ( height > 3000 || control->levels[ 0 ] < 0 ||
+                      control->mov.vz > 2000 ||
+                      control->mov.vx < -4000 || control->mov.vx > 4000 )
+            {
+                work->target->vital = 0;
+                GM_SeSet( &control->mov, SE_V_ENE_THROWN );
+            }
+        }
+
+        if ( work->body.is_end )
+        {
+            if ( control->grounded == 0 )
+            {
+                SetAction( work, 40, 4 );
+            }
+            else
+            {
+                SetMode( work, s14e_800C8898 );
+            }
+        }
+    }
+    else if ( control->grounded )
+    {
+        GM_SeSet( &control->mov, SE_V_ENE_PUNCHED );
+        GM_SeSet( &control->mov, SE_DOWN0002 );
+        GM_SetNoise( 100, 4, &control->mov );
+        s14e_800CA2E4( work, 6, 1 );
+
+        if ( work->target->vital <= 0 )
+        {
+            SetMode( work, s14e_800C94A8 );
+        }
+        else
+        {
+            SetMode( work, s14e_800C8898 );
+        }
+    }
+
+    if ( time < 24 )
+    {
+        control->turn = *target->field_1C;
+    }
+
+    if ( time < 22 )
+    {
+        work->control.hzd_height = -32767;
+    }
+}
 
 void s14e_800C82D0( Work *work )
 {
