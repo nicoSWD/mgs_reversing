@@ -321,10 +321,10 @@ const int s14e_dword_800DCA24 = 0x800C8FF4;
 const int s14e_dword_800DCA28 = 0x800C9040;
 const int s14e_dword_800DCA2C = 0x800C9040;
 
-void s14e_800CA538( Work *work );
-void s14e_800CA5D0( Work *work );
-void s14e_800CA718( Work *work );
-void s14e_800CA754( Work *work );
+static void s14e_800CA538( Work *work );
+static void s14e_800CA5D0( Work *work );
+static void s14e_800CA718( Work *work );
+static void s14e_800CA754( Work *work );
 
 static SVECTOR BloodPos = {0, 0, 100};
 static SVECTOR BloodRot = {-1024, 0, 0};
@@ -1212,7 +1212,7 @@ void s14e_800CA49C( Work *work, int mark )
     work->mark_time = 30;
 }
 
-void s14e_800CA538( Work *work )
+static void s14e_800CA538( Work *work )
 {
     int action, frame, l, r;
 
@@ -1244,7 +1244,7 @@ void s14e_800CA538( Work *work )
         }
     }
 }
-void s14e_800CA5D0( Work *work )
+static void s14e_800CA5D0( Work *work )
 {
     int frame;
 
@@ -1287,13 +1287,13 @@ void s14e_800CA5D0( Work *work )
 }
 
 
-void s14e_800CA718( Work *work )
+static void s14e_800CA718( Work *work )
 {
     if ( work->vision.pad != 2 ) return;
     NewLSight( &GM_PlayerPosition, &work->control.mov, MAKE_RGB( 143, 0, 0 ) );
 }
 
-void s14e_800CA754( Work *work )
+static void s14e_800CA754( Work *work )
 {
     SVECTOR rot;
     MATRIX bullet_pos;
