@@ -1,5 +1,13 @@
 #include "animal/zako14/zako.h"
 
+extern SVECTOR   ZAKO14_PlayerPosition;
+extern COMMANDER ZAKO14Command;
+extern TOP       ZAKO14TOPCOMMAND;
+extern int       ZAKO14_Unknown;
+extern int       ZAKO14_GameFlag;
+extern int       ZAKO14_PlayerAddress;
+extern int       ZAKO14_PlayerMap;
+
 int s14e_dword_800C34D8 = 0x00001676;
 int s14e_dword_800C34DC = 0x0000FC18;
 int s14e_dword_800C34E0 = 0x0000186A;
@@ -193,9 +201,45 @@ const int s14e_dword_800DD010 = 0x800CDBD0;
 const int s14e_dword_800DD014 = 0x800CDBE0;
 const int s14e_dword_800DD018 = 0x800CDBF0;
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCB60.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCBA8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCC04.s")
+void s14e_800CCB60( Work *work )
+{
+    work->target_addr = ZAKO14_PlayerAddress;
+    work->target_pos = ZAKO14_PlayerPosition;
+    work->target_map = ZAKO14_PlayerMap;
+}
+
+void s14e_800CCBA8( Work *work )
+{
+    HZD_ZON *zone;
+
+    zone = HZD_GetZone( work->control.map->hzd, work->param.next );
+    work->target_addr = work->param.next | ( work->param.next << 8 );
+    work->target_pos.vx = zone->x;
+    work->target_pos.vy = zone->y;
+    work->target_pos.vz = zone->z;
+    work->target_map = work->start_map;
+}
+
+void s14e_800CCC04( Work *work )
+{
+    if ( work->param.next == 255 )
+    {
+        work->think2 = 1;
+        work->think1 = 0;
+        work->think3 = 4;
+    }
+    else
+    {
+        work->think2 = 3;
+        work->think1 = 0;
+        work->think3 = 16;
+        s14e_800CCBA8( work );
+    }
+
+    work->count3 = 0;
+    work->pad.field_4 = 1;
+}
+
 void s14e_800CCC70( Work *work )
 {
     work->think1 = 0;
