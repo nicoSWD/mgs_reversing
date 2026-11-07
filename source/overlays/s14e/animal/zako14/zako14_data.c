@@ -975,7 +975,59 @@ void s14e_800C8BE8( Work *work, int time )
     }
 }
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8CF8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C924C.s")
+void s14e_800C924C( Work *work, int time )
+{
+    CONTROL *control;
+
+    work->act.field_1E = 0;
+    work->act_status |= 0x8;
+
+    control = &work->control;
+    control->step = work->target->force;
+
+    if ( time == 0 && work->act.field_14 != 2 ) GM_SeSet( &control->mov, SE_V_ENE_THROWN );
+    if ( time > 16 && control->grounded ) control->step = DG_ZeroVector;
+
+    if ( work->act.motion1 < 39 )
+    {
+        if ( work->body.is_end )
+        {
+            if ( work->act.field_14 < 3 )
+            {
+                if ( work->act.field_14 == 1 )
+                {
+                    SetAction( work, 41, 4 );
+                }
+                else
+                {
+                    SetAction( work, 39, 4 );
+                }
+            }
+            else
+            {
+                SetAction( work, 40, 4 );
+            }
+        }
+    }
+    else if ( control->grounded )
+    {
+        work->act.field_1E = 1;
+        work->target->force = DG_ZeroVector;
+        GM_SeSet( &control->mov, SE_HIT_FLOOR );
+        s14e_800CA2E4( work, 6, 1 );
+        SetMode( work, s14e_800C94A8 );
+    }
+
+    if ( time > 90 )
+    {
+        work->act.field_1E = 1;
+        work->target->force = DG_ZeroVector;
+        GM_SeSet( &control->mov, SE_HIT_FLOOR );
+        s14e_800CA2E4( work, 6, 1 );
+        SetMode( work, s14e_800C94A8 );
+    }
+}
+
 void s14e_800C94A8( Work *work, int time )
 {
     work->act_status |= 0x40;
