@@ -1,5 +1,8 @@
 #include "animal/zako14/zako.h"
 
+#include <stdio.h>
+#include "enemy/eyeflash.h"
+
 extern SVECTOR   ZAKO14_PlayerPosition;
 extern COMMANDER ZAKO14Command;
 extern TOP       ZAKO14TOPCOMMAND;
@@ -8,12 +11,14 @@ extern int       ZAKO14_GameFlag;
 extern int       ZAKO14_PlayerAddress;
 extern int       ZAKO14_PlayerMap;
 
-int s14e_dword_800C34D8 = 0x00001676;
-int s14e_dword_800C34DC = 0x0000FC18;
-int s14e_dword_800C34E0 = 0x0000186A;
-int s14e_dword_800C34E4 = 0x000001F4;
-int s14e_dword_800C34E8 = 0x00001676;
-int s14e_dword_800C34EC = 0x000007D0;
+void s14e_800CA49C( Work *work, int mark );
+
+static SVECTOR s14e_dword_800C34D8[] = {
+    { 5750, 0, -1000 },
+    { 6250, 0, 500 },
+    { 5750, 0, 2000 }
+};
+
 int s14e_dword_800C34F0 = 0x00000000;
 int s14e_dword_800C34F4 = 0x00000000;
 int s14e_dword_800C34F8 = 0x00000001;
@@ -143,63 +148,6 @@ int s14e_dword_800C36E4 = 0x00000000;
 int s14e_dword_800C36E8 = 0x00000000;
 int s14e_dword_800C36EC = 0x00000000;
 
-const char s14e_dword_800DCF30[] = "kirari01";
-const char s14e_dword_800DCF3C[] = {0x0, 0x0, 0x0, 0x0};
-const int s14e_dword_800DCF40 = 0x800CD320;
-const int s14e_dword_800DCF44 = 0x800CD350;
-const int s14e_dword_800DCF48 = 0x800CD340;
-const int s14e_dword_800DCF4C = 0x800CD330;
-const int s14e_dword_800DCF50 = 0x800CD360;
-const int s14e_dword_800DCF54 = 0x800CD360;
-const int s14e_dword_800DCF58 = 0x800CD358;
-const int s14e_dword_800DCF5C = 0x800CD360;
-const int s14e_dword_800DCF60 = 0x800CD360;
-const int s14e_dword_800DCF64 = 0x800CD328;
-const int s14e_dword_800DCF68 = 0x800CD360;
-const int s14e_dword_800DCF6C = 0x800CD360;
-const int s14e_dword_800DCF70 = 0x800CD360;
-const int s14e_dword_800DCF74 = 0x800CD360;
-const int s14e_dword_800DCF78 = 0x800CD360;
-const int s14e_dword_800DCF7C = 0x800CD360;
-const int s14e_dword_800DCF80 = 0x800CD360;
-const int s14e_dword_800DCF84 = 0x800CD360;
-const int s14e_dword_800DCF88 = 0x800CD360;
-const int s14e_dword_800DCF8C = 0x800CD360;
-const int s14e_dword_800DCF90 = 0x800CD360;
-const int s14e_dword_800DCF94 = 0x800CD360;
-const int s14e_dword_800DCF98 = 0x800CD360;
-const int s14e_dword_800DCF9C = 0x800CD338;
-const int s14e_dword_800DCFA0 = 0x800CD360;
-const int s14e_dword_800DCFA4 = 0x800CD360;
-const int s14e_dword_800DCFA8 = 0x800CD360;
-const int s14e_dword_800DCFAC = 0x800CD360;
-const int s14e_dword_800DCFB0 = 0x800CD360;
-const int s14e_dword_800DCFB4 = 0x800CD360;
-const int s14e_dword_800DCFB8 = 0x800CD360;
-const int s14e_dword_800DCFBC = 0x800CD360;
-const int s14e_dword_800DCFC0 = 0x800CD348;
-const char s14e_dword_800DCFC4[] = {0x0, 0x0, 0x0, 0x0};
-const int s14e_dword_800DCFC8 = 0x800CD654;
-const int s14e_dword_800DCFCC = 0x800CD69C;
-const int s14e_dword_800DCFD0 = 0x800CD684;
-const int s14e_dword_800DCFD4 = 0x800CD68C;
-const int s14e_dword_800DCFD8 = 0x800CD694;
-const char s14e_dword_800DCFDC[] = {0x0, 0x0, 0x0, 0x0};
-const int s14e_dword_800DCFE0 = 0x800CD8A4;
-const int s14e_dword_800DCFE4 = 0x800CD8BC;
-const int s14e_dword_800DCFE8 = 0x800CD9AC;
-const int s14e_dword_800DCFEC = 0x800CD8D4;
-const int s14e_dword_800DCFF0 = 0x800CD8F4;
-const int s14e_dword_800DCFF4 = 0x800CD90C;
-const int s14e_dword_800DCFF8 = 0x800CD924;
-const int s14e_dword_800DCFFC = 0x800CD93C;
-const int s14e_dword_800DD000 = 0x800CD970;
-const int s14e_dword_800DD004 = 0x800CD954;
-const int s14e_dword_800DD008 = 0x800CDBB0;
-const int s14e_dword_800DD00C = 0x800CDBC0;
-const int s14e_dword_800DD010 = 0x800CDBD0;
-const int s14e_dword_800DD014 = 0x800CDBE0;
-const int s14e_dword_800DD018 = 0x800CDBF0;
 
 void s14e_800CCB60( Work *work )
 {
@@ -249,20 +197,198 @@ void s14e_800CCC70( Work *work )
     work->pad.field_4 = 1;
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCC8C.s")
+int s14e_800CCC8C( SVECTOR *from, SVECTOR *to )
+{
+    SVECTOR diff;
+
+    GV_SubVec3( to, from, &diff );
+    diff.vy = 0;
+
+    return GV_VecDir2( &diff );
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCCC4.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCF84.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD024.s")
+int s14e_800CCF84( Work *work )
+{
+    if ( work->count3 == 0 )
+    {
+        s14e_800CA49C( work, 0 );
+        GM_SeSet( &work->control.mov, SE_EXCLAMATION );
+        NewEyeflash( &work->body.objs->objs[ 6 ].world, &work->control.mov, "kirari01", 0 );
+    }
+
+    if ( work->count3 >= 0 && work->count3 <= 19 )
+    {
+        work->pad.press |= 0x20;
+        work->count3++;
+        return 0;
+    }
+
+    return 1;
+}
+
+int s14e_800CD024( Work *work )
+{
+    if ( work->count3 == 0 )
+    {
+        GM_SeSet( &work->control.mov, 83 );
+        s14e_800CA49C( work, 0 );
+    }
+
+    if ( work->count3 < 0 || work->count3 > 20 ) return 1;
+
+    work->count3++;
+    return 0;
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD08C.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD0FC.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD184.s")
+int s14e_800CD0FC( Work *work, int r )
+{
+    SVECTOR diff;
+    int x, z;
+
+    diff.vx = x = work->target_pos.vx - work->control.mov.vx;
+    diff.vz = z = work->target_pos.vz - work->control.mov.vz;
+
+    if ( x <= -r || x >= r || z <= -r || z >= r )
+    {
+        work->pad.dir = GV_VecDir2( &diff );
+        work->count3++;
+        return 0;
+    }
+
+    return 1;
+
+}
+
+int s14e_800CD184( Work *work )
+{
+    s14e_800CCB60( work );
+    if ( work->control.map->index != work->target_map ) return -1;
+
+    if ( work->count3 & 0x10 )
+    {
+        work->current_addr = HZD_GetAddress( work->control.map->hzd, &work->control.mov, -1 );
+        if ( HZD_ReachTo( work->control.map->hzd, work->current_addr, work->target_addr ) >= 2 ) return -1;
+    }
+
+    return s14e_800CD0FC( work, 1500 );
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD218.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD2B4.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD37C.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD440.s")
+int s14e_800CD2B4( Work *work )
+{
+    work->pad.press |= 0x20000;
+    if ( work->count3 == 0 ) work->pad.press |= 0x80000;
+    if ( work->count3 < 0 || work->count3 > 80 ) return 1;
+
+    switch ( work->param.next )
+    {
+    case 0:
+        work->pad.dir = 1536;
+        break;
+    case 9:
+        work->pad.dir = 2048;
+        break;
+    case 3:
+        work->pad.dir = 2560;
+        break;
+    case 23:
+        work->pad.dir = 3072;
+        break;
+    case 2:
+        work->pad.dir = 3584;
+        break;
+    case 32:
+        work->pad.dir = 0;
+        break;
+    case 1:
+        work->pad.dir = 512;
+        break;
+    case 6:
+        work->pad.dir = 1024;
+        break;
+    }
+
+    work->count3++;
+    return 0;
+}
+
+int s14e_800CD37C( Work *work )
+{
+    work->pad.press |= 0x10000;
+
+    if ( work->count3 == 30 )
+    {
+        work->pad.press |= 0x100000;
+        work->field_C04 = s14e_dword_800C34D8[ work->param.index ];
+    }
+    else if ( work->body.is_end )
+    {
+        return 1;
+    }
+
+    work->pad.dir = s14e_800CCC8C( &work->control.mov, &s14e_dword_800C34D8[ work->param.index ] );
+    work->count3++;
+    return 0;
+}
+
+int s14e_800CD440( Work *work )
+{
+    work->pad.press |= 0x10000;
+
+    if ( work->count3 == 0 )
+    {
+        work->pad.press |= 0x200000;
+    }
+    else if ( work->field_8FC != 0 || ( work->count3 < 0 || work->count3 > 30 ) )
+    {
+        return 1;
+    }
+
+    work->pad.dir = work->sn_dir;
+    work->count3++;
+    return 0;
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD4A8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD514.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD55C.s")
+int s14e_800CD55C( Work *work )
+{
+    if ( work->sn_dis < 800 )
+    {
+        work->pad.press |= 0x10000;
+        return 1;
+    }
+
+    work->pad.dir = work->sn_dir;
+    work->count3++;
+    return 0;
+}
+
+const char s14e_dword_800DCFC4[] = {0x0, 0x0, 0x0, 0x0};
+const int s14e_dword_800DCFC8 = 0x800CD654;
+const int s14e_dword_800DCFCC = 0x800CD69C;
+const int s14e_dword_800DCFD0 = 0x800CD684;
+const int s14e_dword_800DCFD4 = 0x800CD68C;
+const int s14e_dword_800DCFD8 = 0x800CD694;
+const char s14e_dword_800DCFDC[] = {0x0, 0x0, 0x0, 0x0};
+const int s14e_dword_800DCFE0 = 0x800CD8A4;
+const int s14e_dword_800DCFE4 = 0x800CD8BC;
+const int s14e_dword_800DCFE8 = 0x800CD9AC;
+const int s14e_dword_800DCFEC = 0x800CD8D4;
+const int s14e_dword_800DCFF0 = 0x800CD8F4;
+const int s14e_dword_800DCFF4 = 0x800CD90C;
+const int s14e_dword_800DCFF8 = 0x800CD924;
+const int s14e_dword_800DCFFC = 0x800CD93C;
+const int s14e_dword_800DD000 = 0x800CD970;
+const int s14e_dword_800DD004 = 0x800CD954;
+const int s14e_dword_800DD008 = 0x800CDBB0;
+const int s14e_dword_800DD00C = 0x800CDBC0;
+const int s14e_dword_800DD010 = 0x800CDBD0;
+const int s14e_dword_800DD014 = 0x800CDBE0;
+const int s14e_dword_800DD018 = 0x800CDBF0;
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD5A4.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD6C4.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD714.s")
