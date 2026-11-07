@@ -63,9 +63,11 @@ void s14e_800C8AD8( Work *work, int time );
 void s14e_800C8BE8( Work *work, int time );
 void s14e_800C8CF8( Work *work, int time );
 void s14e_800C94A8( Work *work, int time );
+void s14e_800C95B8( Work *work, int time );
 void s14e_800C924C( Work *work, int time );
 
 void s14e_800C94A8( Work *work, int time );
+void s14e_800C95B8( Work *work, int time );
 void s14e_800C9838( Work *work, int time );
 void s14e_800C9904( Work *work, int time );
 void s14e_800C99D0( Work *work, int time );
@@ -974,8 +976,71 @@ void s14e_800C8BE8( Work *work, int time )
 }
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8CF8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C924C.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C94A8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C95B8.s")
+void s14e_800C94A8( Work *work, int time )
+{
+    work->act_status |= 0x40;
+
+    if ( time == 0 )
+    {
+        if ( work->act.field_14 < 3 )
+        {
+            if ( work->act.field_14 == 1 )
+            {
+                SetAction( work, 51, 4 );
+                GM_ConfigControlAttribute( &work->control, 0 );
+                work->alert_level = 0;
+            }
+            else
+            {
+                SetAction( work, 49, 4 );
+                GM_ConfigControlAttribute( &work->control, 0 );
+                work->alert_level = 0;
+            }
+        }
+        else
+        {
+            SetAction( work, 50, 4 );
+            GM_ConfigControlAttribute( &work->control, 0 );
+            work->alert_level = 0;
+        }
+    }
+
+    if ( time == 4 )
+    {
+        s14e_800CA3B8( work );
+    }
+
+    if ( time & 2 )
+    {
+        work->field_9E4 = 0;
+    }
+    else
+    {
+        work->field_9E4 = 1;
+    }
+
+    if ( time > 8 ) SetMode( work, s14e_800C95B8 );
+}
+
+void s14e_800C95B8( Work *work, int time )
+{
+    work->act_status |= 0x40;
+
+    if ( time == 0 )
+    {
+        work->field_9E4 = 0;
+        work->control.mov = ZAKO14_NO_POINT;
+        ZAKO14Command.watchers[ work->param.index ].field_4 = 1;
+        if ( work->field_C44 == 0 ) GM_EnemyKillCount++;
+    }
+
+    if ( ZAKO14Command.watchers[ work->param.index ].field_4 == 2 )
+    {
+        s14e_800C6E6C( work );
+        SetMode( work, s14e_800C7398 );
+    }
+}
+
 void s14e_800C96AC( Work *work )
 {
     ACT *act;
