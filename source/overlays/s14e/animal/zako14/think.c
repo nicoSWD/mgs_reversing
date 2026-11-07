@@ -12,7 +12,10 @@ extern int       ZAKO14_PlayerAddress;
 extern int       ZAKO14_PlayerMap;
 
 void s14e_800CA49C( Work *work, int mark );
-void s14e_800CDB78( Work *work );
+void s14e_800CD764( Work *work );
+void s14e_800CD858( Work *work );
+void s14e_800CD9DC( Work *work );
+void s14e_800CDADC( Work *work );
 int  s14e_800CCCC4( Work *work );
 
 static SVECTOR s14e_dword_800C34D8[] = {
@@ -440,11 +443,6 @@ const int s14e_dword_800DCFF8 = 0x800CD924;
 const int s14e_dword_800DCFFC = 0x800CD93C;
 const int s14e_dword_800DD000 = 0x800CD970;
 const int s14e_dword_800DD004 = 0x800CD954;
-const int s14e_dword_800DD008 = 0x800CDBB0;
-const int s14e_dword_800DD00C = 0x800CDBC0;
-const int s14e_dword_800DD010 = 0x800CDBD0;
-const int s14e_dword_800DD014 = 0x800CDBE0;
-const int s14e_dword_800DD018 = 0x800CDBF0;
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD5A4.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD6C4.s")
@@ -465,7 +463,27 @@ void s14e_800CD734( Work *work )
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD858.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD9DC.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CDADC.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CDB78.s")
+void s14e_800CDB78( Work *work )
+{
+    switch ( work->think2 )
+    {
+    case 0:
+        s14e_800CD734( work );
+        break;
+    case 1:
+        s14e_800CD9DC( work );
+        break;
+    case 2:
+        s14e_800CD858( work );
+        break;
+    case 3:
+        s14e_800CDADC( work );
+        break;
+    case 4:
+        s14e_800CD764( work );
+        break;
+    }
+}
 void s14e_800CDC08( Work *work )
 {
     work->pad.dir = -1;
