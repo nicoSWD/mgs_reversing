@@ -11,6 +11,9 @@ extern int       ZAKO14_GameFlag;
 extern int       ZAKO14_PlayerAddress;
 extern int       ZAKO14_PlayerMap;
 
+void AN_Sleep( SVECTOR *pos );
+void AN_Unknown_800C3B7C( MATRIX *world );
+
 int s14e_800C6A34( Work *work );
 int s14e_800C6AC0( Work *work );
 int s14e_800C6ADC( SVECTOR *vec );
@@ -79,8 +82,7 @@ short ActionTable[] = {
 int s14e_dword_800C33BC = 0x00000401;
 int s14e_dword_800C33C0 = 0x000004FF;
 static SVECTOR s14e_dword_800C33C4 = { -150, 0, 300 };
-int s14e_dword_800C33CC = 0xFD440000;
-int s14e_dword_800C33D0 = 0x00000384;
+static SVECTOR BreathPos = { 0, -700, 900 };
 int s14e_dword_800C33D4 = 0x00000000;
 int s14e_dword_800C33D8 = 0x00000064;
 int s14e_dword_800C33DC = 0x0000FC00;
@@ -910,18 +912,220 @@ void s14e_800C8AD8( Work *work, int time )
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C94A8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C95B8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C96AC.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9838.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9904.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C99D0.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9A68.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9B00.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9BB4.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9C7C.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9D20.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9DE8.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C9FC0.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA000.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA148.s")
+void s14e_800C9838( Work *work, int time )
+{
+    if ( time == 0 ) SetAction2( work, 9, 4, 0x3FE );
+
+    if ( !( work->pad.press & 0x1 ) )
+    {
+        UnsetMode( work );
+    }
+    else if ( time < 4 )
+    {
+        work->vision.facedir = ( work->control.rot.vy - time * 256 ) & 4095;
+    }
+    else
+    {
+        work->vision.facedir = ( work->control.rot.vy - 1024 ) & 4095;
+    }
+}
+
+void s14e_800C9904( Work *work, int time )
+{
+    if ( time == 0 ) SetAction2( work, 10, 4, 0x3FE );
+
+    if ( !( work->pad.press & 0x2 ) )
+    {
+        UnsetMode( work );
+    }
+    else if ( time < 4 )
+    {
+        work->vision.facedir = ( work->control.rot.vy + time * 256 ) & 4095;
+    }
+    else
+    {
+        work->vision.facedir = ( work->control.rot.vy + 1024 ) & 4095;
+    }
+}
+
+void s14e_800C99D0( Work *work, int time )
+{
+    work->vision.length = 3000;
+
+    if ( time == 0 ) SetAction2( work, 11, 4, 0x3FE );
+    if ( !( work->pad.press & 0x4 ) ) UnsetMode( work );
+}
+
+void s14e_800C9A68( Work *work, int time )
+{
+    work->vision.length = 3000;
+
+    if ( time == 0 ) SetAction2( work, 14, 4, 0x3FE );
+    if ( !( work->pad.press & 0x2000 ) ) UnsetMode( work );
+}
+
+void s14e_800C9B00( Work *work, int time )
+{
+    work->vision.length = 0;
+
+    if ( time == 0 )
+    {
+        SetAction2( work, 24, 4, 0x3FE );
+        GM_SeSet( &work->control.mov, SE_V_ENE_SNEEZE );
+    }
+
+    if ( work->body.time2 != 0 || !( work->pad.press & 0x40 ) )
+    {
+        work->pad.time = 0;
+        UnsetMode( work );
+    }
+}
+
+void s14e_800C9BB4( Work *work, int time )
+{
+    work->vision.length = 0;
+
+    if ( time == 0 ) SetAction2( work, 22, 4, 0x3FE );
+    if ( time == 60 ) GM_SeSet( &work->control.mov, SE_V_ENE_YAWN );
+
+    if ( work->body.time2 != 0 || !( work->pad.press & 0x80 ) )
+    {
+        work->pad.time = 0;
+        UnsetMode( work );
+    }
+}
+
+void s14e_800C9C7C( Work *work, int time )
+{
+    if ( time == 0 ) SetAction2( work, 23, 4, 0x3FE );
+
+    if ( work->body.time2 != 0 || !( work->pad.press & 0x400 ) )
+    {
+        work->pad.time = 0;
+        UnsetMode( work );
+    }
+}
+
+void s14e_800C9D20( Work *work, int time )
+{
+    work->vision.length = 0;
+
+    if ( time == 0 ) SetAction2( work, 19, 4, 0x3FE );
+    if ( time == 90 ) GM_SeSet( &work->control.mov, SE_V_ENE_YAWN );
+
+    if ( work->body.time2 != 0 || !( work->pad.press & 0x800 ) )
+    {
+        work->pad.time = 0;
+        UnsetMode( work );
+    }
+}
+
+void s14e_800C9DE8( Work *work, int time )
+{
+    SVECTOR pos;
+
+    work->vision.length = 0;
+
+    if ( time == 0 ) SetAction2( work, 19, 4, 0x3FE );
+    if ( time == 90 ) GM_SeSet( &work->control.mov, SE_V_ENE_YAWN );
+    if ( time == 110 ) SetAction2( work, 20, 4, 0x3FE );
+
+    if ( time > 110 )
+    {
+        work->act_status |= 0x10;
+
+        if ( work->m_ctrl.info2.frame == 30 )
+        {
+            pos = work->control.mov;
+            pos.vy += 500;
+            AN_Sleep( &pos );
+            GM_SeSet( &work->control.mov, SE_V_ENE_SNORE );
+
+            if ( work->sn_dis < 1000 &&
+                 ( GM_PlayerStatus & PLAYER_WATCH ) &&
+                 GV_RandU( 12 ) > 10 )
+            {
+                work->pad.sound = 240;
+            }
+        }
+
+        if ( work->pad.press & 0x1000 )
+        {
+            SetMode( work, s14e_800C7F00 );
+            UnsetMode( work );
+            return;
+        }
+    }
+
+    if ( !( work->pad.press & 0x200 ) )
+    {
+        UnsetMode( work );
+    }
+}
+
+static void s14e_800C9FC0( Work *work ) 
+{
+    MATRIX world;
+
+    DG_SetPos( &work->body.objs->objs[ 6 ].world );
+    DG_MovePos( &BreathPos );
+    ReadRotMatrix( &world );
+    AN_Unknown_800C3B7C( &world );
+}
+
+void s14e_800CA000( Work *work, int time )
+{
+    int cont;
+
+    work->vision.length = 3000;
+    work->act_status |= 0x80;
+
+    if ( time == 0 ) SetAction2( work, 25, 4, 0x3FE );
+
+    if ( time >= 1000 && time <= 1209 )
+    {
+        cont = time - 1000;
+        if ( cont == 0  || cont == 4  || cont == 8  || cont == 12 ||
+             cont == 20 || cont == 28 || cont == 36 || cont == 48 ||
+             cont == 60 )
+        {
+            GM_SeSet( &work->control.mov, SE_WET_STEP );
+            s14e_800C9FC0( work );
+        }
+    }
+    else if ( time > 30 && ( time & 0x1 ) )
+    {
+        GM_SeSet( &work->control.mov, SE_WET_STEP );
+        if ( time > 45 ) s14e_800C9FC0( work );
+    }
+
+    if ( !( work->pad.press & 0x800000 ) ) UnsetMode( work );
+}
+
+void s14e_800CA148( Work *work, int time )
+{
+    work->vision.length = 3000;
+
+    if ( time == 0 ) SetAction2( work, 25, 4, 0x3FE );
+    if ( time == 186 ) SetAction2( work, 26, 4, 0xFFFF );
+
+    if ( time == 0   || time == 4   || time == 8   || time == 12  ||
+         time == 20  || time == 28  || time == 36  || time == 48  ||
+         time == 60  || time == 120 || time == 122 || time == 124 ||
+         time == 126 || time == 180 || time == 182 || time == 184 ||
+         time == 186 )
+    {
+        GM_SeSet( &work->control.mov, SE_WET_STEP );
+        s14e_800C9FC0( work );
+    }
+
+    if ( ( time > 186 && work->body.time2 != 0 ) || !( work->pad.press & 0x1000000 ) )
+    {
+        work->pad.time = 0;
+        UnsetMode( work );
+    }
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA2E4.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA354.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CA3B8.s")
