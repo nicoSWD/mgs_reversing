@@ -15,6 +15,14 @@ void s14e_800C8CF8( Work *work, int time );
 void s14e_800C86D4( Work *work, int time );
 void s14e_800C8748( Work *work, int time );
 void s14e_800C8AD8( Work *work, int time );
+void s14e_800C94A8( Work *work, int time );
+
+void s14e_800CA2E4( Work *work, int unit, int count );
+void s14e_800CA354( Work *work );
+void s14e_800CA3B8( Work *work );
+int  s14e_800C701C( Work *work );
+int  s14e_800CA8D8( Work *work, void *func );
+void s14e_800CA90C( Work *work );
 
 short ActionTable[] = {
     19, 20, 10, 22, 9, 34, 35, 36,
@@ -177,8 +185,34 @@ const char s14e_dword_800DCA44[] = "SOCOM/BULLET * 12";
 const char s14e_dword_800DCA58[] = "RATION";
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6D20.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6DB0.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6E08.s")
+int s14e_800C6DB0( Work *work )
+{
+    if ( GM_GameStatus & STATE_STUN )
+    {
+        SetMode( work, s14e_800C8748 );
+        return 1;
+    }
+
+    return 0;
+}
+int s14e_800C6E08( Work *work )
+{
+    int capture, power, stun;
+
+    power = s14e_800C6B18( work );
+    if ( power == 0 )
+    {
+        capture = s14e_800C6A34( work );
+        stun = s14e_800C6DB0( work );
+        if ( ( capture | stun ) == 0 )
+        {
+            return 0;
+        }
+    }
+
+    work->target->class = TARGET_AVAIL;
+    return 1;
+}
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6E6C.s")
 int s14e_800C6F40( int from, int to )
 {
@@ -294,8 +328,49 @@ void s14e_800C7AEC( Work *work, int time )
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7B9C.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7CD0.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7E28.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7F00.s")
+void s14e_800C7E28( Work *work, int time )
+{
+    work->target->class |= TARGET_FLAG;
+    work->vision.length = ZAKO14_EYE_LENGTH;
+
+    if ( time == 0 )
+    {
+        SetAction( work, 8, 0 );
+    }
+
+    if ( time == 3 && s14e_800C701C( work ) != 0 )
+    {
+        GM_SeSet( &work->control.mov, SE_HIT );
+    }
+
+    work->control.turn.vy = work->sn_dir;
+
+    if ( !s14e_800C6E08( work ) && work->body.is_end )
+    {
+        SetMode( work, s14e_800C7978 );
+    }
+}
+
+void s14e_800C7F00( Work *work, int time )
+{
+    work->vision.length = 0;
+
+    if ( time == 0 )
+    {
+        SetAction( work, 21, 4 );
+    }
+
+    if ( !s14e_800C6E08( work ) )
+    {
+        work->target->class |= TARGET_FLAG;
+        if ( work->body.is_end )
+        {
+            work->field_8FC = 1;
+            SetMode( work, s14e_800C7398 );
+        }
+    }
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C7FA8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C82D0.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8350.s")
@@ -392,7 +467,33 @@ void s14e_800C8898( Work *work, int time )
     }
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8A10.s")
+void s14e_800C8A10( Work *work, int time )
+{
+    if ( time == 0 )
+    {
+        if ( work->act.field_14 < 3 )
+        {
+            SetAction( work, 46, 4 );
+        }
+        else
+        {
+            SetAction( work, 47, 4 );
+        }
+
+        GM_SeSet( &work->control.mov, SE_ITEM_CURSOR );
+    }
+
+    if ( time == 4 )
+    {
+        s14e_800CA3B8( work );
+    }
+
+    if ( work->body.is_end )
+    {
+        SetMode( work, s14e_800C94A8 );
+    }
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8AD8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8BE8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C8CF8.s")
