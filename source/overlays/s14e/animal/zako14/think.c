@@ -13,6 +13,8 @@ extern int       ZAKO14_PlayerMap;
 
 void s14e_800CA49C( Work *work, int mark );
 void s14e_800CD764( Work *work );
+int  s14e_800CD5A4( Work *work );
+int  s14e_800CD6C4( Work *work );
 void s14e_800CD858( Work *work );
 void s14e_800CD9DC( Work *work );
 void s14e_800CDADC( Work *work );
@@ -432,17 +434,6 @@ const int s14e_dword_800DCFCC = 0x800CD69C;
 const int s14e_dword_800DCFD0 = 0x800CD684;
 const int s14e_dword_800DCFD4 = 0x800CD68C;
 const int s14e_dword_800DCFD8 = 0x800CD694;
-const char s14e_dword_800DCFDC[] = {0x0, 0x0, 0x0, 0x0};
-const int s14e_dword_800DCFE0 = 0x800CD8A4;
-const int s14e_dword_800DCFE4 = 0x800CD8BC;
-const int s14e_dword_800DCFE8 = 0x800CD9AC;
-const int s14e_dword_800DCFEC = 0x800CD8D4;
-const int s14e_dword_800DCFF0 = 0x800CD8F4;
-const int s14e_dword_800DCFF4 = 0x800CD90C;
-const int s14e_dword_800DCFF8 = 0x800CD924;
-const int s14e_dword_800DCFFC = 0x800CD93C;
-const int s14e_dword_800DD000 = 0x800CD970;
-const int s14e_dword_800DD004 = 0x800CD954;
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD5A4.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD6C4.s")
@@ -496,7 +487,90 @@ void s14e_800CD764( Work *work )
         break;
     }
 }
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD858.s")
+void s14e_800CD858( Work *work )
+{
+    int temp_v0;
+
+    switch ( work->think3 )
+    {
+    case 6:
+        if ( s14e_800CD218( work ) )
+        {
+            work->think3 = 14;
+            work->count3 = 0;
+        }
+        break;
+    case 7:
+        if ( s14e_800CD2B4( work ) )
+        {
+            work->think3 = 14;
+            work->count3 = 0;
+        }
+        break;
+    case 9:
+        if ( s14e_800CD37C( work ) )
+        {
+            s14e_800CCC70( work );
+            work->count3 = 0;
+        }
+        break;
+    case 10:
+        if ( s14e_800CD440( work ) )
+        {
+            work->think3 = 14;
+            work->count3 = 0;
+        }
+        break;
+    case 11:
+        if ( s14e_800CD4A8( work ) )
+        {
+            work->think3 = 14;
+            work->count3 = 0;
+        }
+        break;
+    case 12:
+        if ( s14e_800CD514( work ) )
+        {
+            work->think3 = 14;
+            work->count3 = 0;
+        }
+        break;
+    case 13:
+        if ( s14e_800CD55C( work ) )
+        {
+            work->think3 = 10;
+            work->count3 = 0;
+        }
+        break;
+    case 15:
+        temp_v0 = s14e_800CD5A4( work );
+        if ( temp_v0 )
+        {
+            work->think3 = temp_v0;
+            work->count3 = 0;
+        }
+        break;
+    case 14:
+        temp_v0 = s14e_800CD6C4( work );
+        if ( temp_v0 )
+        {
+            work->think3 = temp_v0;
+            work->count3 = 0;
+        }
+
+        if ( !HZD_InsideZone( work->control.map->hzd, &work->control.mov, work->param.next ) )
+        {
+            s14e_800CCC04( work );
+        }
+        break;
+    }
+
+    if ( work->vision.pad == 2 )
+    {
+        ZAKO14SetGopointLast();
+        work->alert_level = 255;
+    }
+}
 void s14e_800CD9DC( Work *work )
 {
     int temp_v0;
