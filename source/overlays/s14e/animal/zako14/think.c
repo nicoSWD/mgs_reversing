@@ -291,7 +291,21 @@ int s14e_800CD184( Work *work )
     return s14e_800CD0FC( work, 1500 );
 }
 
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CD218.s")
+int s14e_800CD218( Work *work )
+{
+    int count;
+
+    work->pad.press |= 0x10000;
+    work->pad.dir = work->sn_dir;
+    count = work->count3;
+
+    if ( count == 0 ) work->count3 = GV_RandU( 8 );
+    if ( count <= 8 && ( count & 1 ) == 0 ) work->pad.press |= 0x40000;
+    if ( count >= 12 ) return 1;
+
+    work->count3++;
+    return 0;
+}
 int s14e_800CD2B4( Work *work )
 {
     work->pad.press |= 0x20000;
