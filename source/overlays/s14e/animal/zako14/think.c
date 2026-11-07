@@ -1,4 +1,4 @@
-#include "game/game.h"
+#include "animal/zako14/zako.h"
 
 int s14e_dword_800C34D8 = 0x00001676;
 int s14e_dword_800C34DC = 0x0000FC18;
@@ -196,7 +196,15 @@ const int s14e_dword_800DD018 = 0x800CDBF0;
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCB60.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCBA8.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCC04.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCC70.s")
+void s14e_800CCC70( Work *work )
+{
+    work->think1 = 0;
+    work->think2 = 0;
+    work->think3 = 0;
+    work->count3 = 0;
+    work->pad.field_4 = 1;
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCC8C.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCCC4.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800CCF84.s")

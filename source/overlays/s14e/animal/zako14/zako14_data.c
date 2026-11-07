@@ -1,4 +1,4 @@
-#include "game/game.h"
+#include "animal/zako14/zako.h"
 
 int s14e_dword_800C3350 = 0x00140013;
 int s14e_dword_800C3354 = 0x0016000A;
@@ -85,7 +85,15 @@ const char s14e_dword_800DCA44[] = "SOCOM/BULLET * 12";
 const char s14e_dword_800DCA58[] = "RATION";
 
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6A34.s")
-#pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6AC0.s")
+int s14e_800C6AC0( Work *work )
+{
+    if (work->target->damaged & 0x20)
+    {
+        return 1;
+    }
+    return 0;
+}
+
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6ADC.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6B18.s")
 #pragma INCLUDE_ASM("asm/overlays/s14e/s14e_800C6D20.s")
