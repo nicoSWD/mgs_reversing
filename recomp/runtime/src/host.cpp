@@ -19,6 +19,33 @@ std::vector<uint32_t> g_pix;
 uint64_t g_frame = 0;
 bool g_quit = false;
 std::chrono::steady_clock::time_point g_last;
+SDL_Gamepad* g_pad = nullptr;
+int g_rumble_small = 0, g_rumble_big = 0, g_rumble_age = 0;
+
+void open_first_gamepad() {
+    if (g_pad) return;
+    int n = 0;
+    SDL_JoystickID* ids = SDL_GetGamepads(&n);
+    for (int i = 0; ids && i < n && !g_pad; i++) {
+        g_pad = SDL_OpenGamepad(ids[i]);
+        if (g_pad) fprintf(stderr, "[host] gamepad: %s\n", SDL_GetGamepadName(g_pad));
+    }
+    SDL_free(ids);
+}
+
+void close_gamepad(SDL_JoystickID which) {
+    if (!g_pad || SDL_GetGamepadID(g_pad) != which) return;
+    SDL_CloseGamepad(g_pad);
+    g_pad = nullptr;
+    fprintf(stderr, "[host] gamepad removed\n");
+    open_first_gamepad();
+}
+
+uint8_t axis_byte(SDL_GamepadAxis a) {  // -32768..32767 -> 0..255, 0x80 in the middle
+    int v = SDL_GetGamepadAxis(g_pad, a);
+    int b = (v + 32768) >> 8;
+    return (uint8_t)(b < 0 ? 0 : b > 255 ? 255 : b);
+}
 
 struct Press { int button; int from, len; };
 std::vector<Press> g_script;
@@ -27,8 +54,21 @@ std::string g_shot_prefix = "shot";
 
 }  // namespace
 
+int host_frame_number() { return (int)g_frame; }
+void host_log_set(bool on) {
+    struct Saved { bool bios, irq, cd, gpu, dma, pad; };
+    static Saved saved;
+    static bool have = false;
+    if (!have) { have = true; saved = {g_log_bios, g_log_irq, g_log_cd, g_log_gpu, g_log_dma, g_log_pad}; }
+    g_log_bios = on && saved.bios; g_log_irq = on && saved.irq; g_log_cd = on && saved.cd;
+    g_log_gpu = on && saved.gpu; g_log_dma = on && saved.dma; g_log_pad = on && saved.pad;
+}
+#ifdef PSX_TRACE_CALLS
+void trace_dump(int n);
+#endif
 bool g_turbo = false;
 int g_max_frames = 0;
+int g_log_from = 0;
 bool g_headless = false;
 
 void host_set_screenshots(const std::vector<int>& frames, const std::string& prefix) {
@@ -64,7 +104,8 @@ void host_set_script(const std::string& s) {  // BUTTON@FRAME[+FRAMES],...
 bool host_init(const char* title, bool headless) {
     g_headless = headless;
     if (headless) return true;
-    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO)) {
+    SDL_SetHint(SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS, "1");  // keep the controller alive when the window is not focused
+    if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD)) {
         fprintf(stderr, "SDL_Init failed: %s\n", SDL_GetError());
         return false;
     }
@@ -82,6 +123,7 @@ bool host_init(const char* title, bool headless) {
         if (g_audio) SDL_ResumeAudioStreamDevice(g_audio);
         else fprintf(stderr, "no audio device: %s\n", SDL_GetError());
     }
+    open_first_gamepad();
     g_last = std::chrono::steady_clock::now();
     return true;
 }
@@ -200,7 +242,10 @@ void host_audio_push(const int16_t* stereo, int frames) {
     SDL_PutAudioStreamData(g_audio, stereo, frames * 4);
 }
 
-uint16_t host_pad_state(int port) {
+// Controller state in the PlayStation's format: a 16 bit word, a clear bit means "pressed" (bit 0 SELECT, 1 L3,
+// 2 R3, 3 START, 4-7 up/right/down/left, 8 L2, 9 R2, 10 L1, 11 R1, 12 triangle, 13 circle, 14 cross, 15 square).
+// `analog` tells whether the game put the pad in analog mode; if not, the left stick doubles as the d-pad.
+uint16_t host_pad_state(int port, bool analog) {
     if (port != 0) return 0xFFFF;
     uint16_t state = 0xFFFF;
     auto press = [&](int bit) { state &= ~(1u << bit); };
@@ -222,21 +267,104 @@ uint16_t host_pad_state(int port) {
     if (k[SDL_SCANCODE_X]) press(13);
     if (k[SDL_SCANCODE_Z]) press(14);
     if (k[SDL_SCANCODE_A]) press(15);
+    if (g_pad) {
+        auto b = [&](SDL_GamepadButton btn) { return SDL_GetGamepadButton(g_pad, btn); };
+        if (b(SDL_GAMEPAD_BUTTON_DPAD_UP)) press(4);
+        if (b(SDL_GAMEPAD_BUTTON_DPAD_RIGHT)) press(5);
+        if (b(SDL_GAMEPAD_BUTTON_DPAD_DOWN)) press(6);
+        if (b(SDL_GAMEPAD_BUTTON_DPAD_LEFT)) press(7);
+        if (b(SDL_GAMEPAD_BUTTON_START)) press(3);                                  // Options
+        if (b(SDL_GAMEPAD_BUTTON_BACK) || b(SDL_GAMEPAD_BUTTON_TOUCHPAD)) press(0);  // Create / touchpad = SELECT
+        if (b(SDL_GAMEPAD_BUTTON_LEFT_STICK)) press(1);
+        if (b(SDL_GAMEPAD_BUTTON_RIGHT_STICK)) press(2);
+        if (b(SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)) press(10);
+        if (b(SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) press(11);
+        if (SDL_GetGamepadAxis(g_pad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 8000) press(8);
+        if (SDL_GetGamepadAxis(g_pad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 8000) press(9);
+        if (b(SDL_GAMEPAD_BUTTON_NORTH)) press(12);  // triangle
+        if (b(SDL_GAMEPAD_BUTTON_EAST)) press(13);   // circle
+        if (b(SDL_GAMEPAD_BUTTON_SOUTH)) press(14);  // cross
+        if (b(SDL_GAMEPAD_BUTTON_WEST)) press(15);   // square
+        if (!analog) {
+            int lx = SDL_GetGamepadAxis(g_pad, SDL_GAMEPAD_AXIS_LEFTX), ly = SDL_GetGamepadAxis(g_pad, SDL_GAMEPAD_AXIS_LEFTY);
+            if (ly < -16000) press(4);
+            if (lx > 16000) press(5);
+            if (ly > 16000) press(6);
+            if (lx < -16000) press(7);
+        }
+    }
+    if (g_log_pad) {
+        static uint16_t last = 0xFFFF;
+        if (state != last) { logf("pad", "buttons %04X (a clear bit is a pressed button)", state); last = state; }
+    }
     return state;
+}
+
+// The four stick bytes of an analog pad in poll order: right X, right Y, left X, left Y (0x80 = centred).
+void host_pad_sticks(uint8_t out[4]) {
+    out[0] = out[1] = out[2] = out[3] = 0x80;
+    if (g_headless || !g_pad) return;
+    out[0] = axis_byte(SDL_GAMEPAD_AXIS_RIGHTX);
+    out[1] = axis_byte(SDL_GAMEPAD_AXIS_RIGHTY);
+    out[2] = axis_byte(SDL_GAMEPAD_AXIS_LEFTX);
+    out[3] = axis_byte(SDL_GAMEPAD_AXIS_LEFTY);
+}
+
+// Vibration requested by the game: the small motor is on/off, the large one has 255 levels.
+void host_pad_rumble(int small, int big) {
+    if (g_headless || !g_pad) return;
+    if (small == g_rumble_small && big == g_rumble_big && g_rumble_age < 20) { g_rumble_age++; return; }
+    g_rumble_small = small; g_rumble_big = big; g_rumble_age = 0;
+    SDL_RumbleGamepad(g_pad, (Uint16)(big * 257), (Uint16)(small ? 0xFFFF : 0), 250);
 }
 
 void host_frame(Cpu* c) {
     (void)c;
     g_frame++;
+    if (g_log_from) {  // logging window: the categories chosen with --log are on for two frames from --log-from
+        if ((int)g_frame == g_log_from) host_log_set(true);
+        if ((int)g_frame == g_log_from + 2) host_log_set(false);
+    }
     int w, h;
     bool want_shot = false;
     for (int f : g_shots) if (f == (int)g_frame) want_shot = true;
-    if (!g_headless || want_shot) build_image(&w, &h);
+    static const char* redscan = getenv("PSX_REDSCAN");  // debug: save frames that have solid red rows
+    if (!g_headless || want_shot || redscan) build_image(&w, &h);
+    if (redscan && !want_shot) {
+        int bad = 0;
+        for (int j = 0; j < h; j++) {
+            int red = 0;
+            for (int i = 0; i < w; i++) {
+                uint32_t p = g_pix[(size_t)j * w + i];
+                if (((p >> 16) & 255) > 150 && ((p >> 8) & 255) < 60 && (p & 255) < 60) red++;
+            }
+            if (red * 2 > w) bad++;
+        }
+        if (bad) {
+            char name[512];
+            snprintf(name, sizeof name, "%s_%d.png", redscan, (int)g_frame);
+            write_png(name, w, h, g_pix.data());
+            logf("host", "red rows: %d in frame %d", bad, (int)g_frame);
+        }
+    }
     if (want_shot) save_shot((int)g_frame, w, h);
+    if (want_shot && getenv("PSX_VRAM_SHOTS")) {  // debug: the whole 1024x512 VRAM next to the screenshot
+        std::vector<uint32_t> all(1024 * 512);
+        const uint16_t* vram = gpu_vram();
+        for (int i = 0; i < 1024 * 512; i++) {
+            uint16_t p = vram[i];
+            all[i] = 0xFF000000u | (((p & 31) << 3) << 16) | ((((p >> 5) & 31) << 3) << 8) | (((p >> 10) & 31) << 3);
+        }
+        char name[512];
+        snprintf(name, sizeof name, "%s_vram_%d.png", g_shot_prefix.c_str(), (int)g_frame);
+        write_png(name, 1024, 512, all.data());
+    }
     if (!g_headless) {
         SDL_Event e;
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_EVENT_QUIT) g_quit = true;
+            if (e.type == SDL_EVENT_GAMEPAD_ADDED) open_first_gamepad();
+            if (e.type == SDL_EVENT_GAMEPAD_REMOVED) close_gamepad(e.gdevice.which);
             if (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_ESCAPE) g_quit = true;
             if (e.type == SDL_EVENT_KEY_DOWN && e.key.key == SDLK_TAB) g_turbo = !g_turbo;
         }
@@ -266,6 +394,9 @@ void host_frame(Cpu* c) {
         g_last = std::chrono::steady_clock::now();
     }
     if (g_quit || (g_max_frames && (int)g_frame >= g_max_frames)) {
+#ifdef PSX_TRACE_CALLS
+        if (getenv("PSX_TRACE_DUMP")) trace_dump(300);
+#endif
         if (const char* dump = getenv("PSX_DUMP_RAM")) { FILE* f = fopen(dump, "wb"); if (f) { fwrite(psx_ram, 1, PSX_RAM_SIZE, f); fclose(f); } }
         fflush(stderr);
         _Exit(0);

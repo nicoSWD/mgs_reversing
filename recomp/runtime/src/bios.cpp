@@ -162,6 +162,7 @@ void thread_switch(Cpu* c, int target) {
     set_tcb_reg(c, me, kRegSR, c->cop0[12]);
     wr32(c, kTcbh, tcb_addr(target));
     GThread& n = g_threads[target];
+    LOG(bios, "thread switch %d -> %d (started=%d used=%d in_exc=%d) ra=%08X", me, target, n.started, n.used, g_in_exception, c->r[31]);
     g_cur_th = target;
     core_set_poll_depth(n.depth);
     if (!n.started) {

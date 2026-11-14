@@ -165,18 +165,23 @@ class Analyzer:
         img = self.img
         base = None
         lui = {}
+        his = []
         pc = jr_addr - 4
         for _ in range(24):
             if pc < f.entry or pc not in f.insns:
                 break
             i = f.insns[pc]
             if i.op == 'lui':
-                lui[i.rt] = i.imm << 16
+                lui.setdefault(i.rt, i.imm << 16)  # scanning backwards: keep the nearest definition of each register
+                his.append(i.imm << 16)
             if i.op == 'lw' and i.rt == reg and base is None:
                 base = ('lw', i.rs, i.simm)
             pc -= 4
         if not base:
             return []
+        t = self.table_from_base_register(f, jr_addr, reg)
+        if t:
+            return t
         # find the register holding the table address: look for addiu/lui constants, a few forms
         _, breg, off = base
         pc = jr_addr - 4
@@ -192,6 +197,8 @@ class Analyzer:
                 pass
             pc -= 4
         cands = []
+        for h in his:  # any recent lui constant: the table is validated below
+            cands.append(h + off)
         for r, h in lui.items():
             cands.append(h + off)
             # lui + addiu (offset in a separate instruction)
@@ -204,6 +211,54 @@ class Analyzer:
                 continue
             out = []
             for k in range(256):
+                a = tbl + 4 * k
+                if not img.has(a):
+                    break
+                t = img.word(a)
+                if not img.has(t) or abs(t - f.entry) > 0x10000:
+                    break
+                out.append(t)
+            if len(out) >= 2:
+                return out
+        return []
+
+    def table_from_base_register(self, f, jr_addr, reg):
+        """`addu r, idx, base; lw r, 0(r); jr r` where `base` was loaded with lui/addiu earlier in the function
+        (the compiler keeps the table address in a saved register). The entry count comes from the sltiu bound."""
+        img = self.img
+        lw = f.insns.get(jr_addr - 8)
+        add = f.insns.get(jr_addr - 12)
+        if not lw or not add or lw.op != 'lw' or lw.rt != reg or lw.rs != reg or add.op != 'addu' or add.rd != reg:
+            return []
+        count = 0
+        for k in range(3, 12):
+            i = f.insns.get(jr_addr - 4 * k)
+            if i and i.op == 'sltiu':
+                count = i.imm
+                break
+        # constants held in registers, tracked over the function's instructions in address order (a heuristic:
+        # the table found this way is validated against the image below)
+        consts = {}
+        for a in sorted(f.insns):
+            if a >= jr_addr:
+                break
+            i = f.insns[a]
+            w = i.writes()
+            if i.op == 'lui':
+                consts[i.rt] = (i.imm << 16) & 0xFFFFFFFF
+            elif i.op in ('addiu', 'ori') and i.rs in consts:
+                consts[i.rt] = (consts[i.rs] + (i.simm if i.op == 'addiu' else i.imm)) & 0xFFFFFFFF
+            elif w is not None:
+                consts.pop(w, None)
+        for breg in (add.rs, add.rt):
+            best = (0, consts[breg]) if breg in consts else None
+            if not best:
+                continue
+            tbl = (best[1] + lw.simm) & 0xFFFFFFFF
+            if not img.has(tbl):
+                continue
+            out = []
+            for k in range(count or 256):
                 a = tbl + 4 * k
                 if not img.has(a):
                     break
@@ -634,6 +689,27 @@ def main():
     tables = sum(len(f.jump_tables) for f in an.funcs.values())
     print('%d functions, %d jump tables, %d/%d instructions covered, %d load-delay hazards handled, %d files' % (
         len(an.funcs), tables, len(covered), len(img.data) // 4, hazards, files))
+    # indirect jumps with no table: the runtime has to guess where they go, which is only safe for the BIOS call
+    # stubs (`li t2, 0xA0; jr t2`) and tail calls through a function pointer. Anything else listed here is probably a jump table the analysis missed.
+    stray = []
+    for f in an.funcs.values():
+        for addr, i in f.insns.items():
+            if i.op == 'jr' and i.rs != 31 and addr not in f.jump_tables:
+                prev = f.insns.get(addr - 4) or f.insns.get(addr - 8)
+                stub = any((f.insns.get(addr - k) is not None and f.insns[addr - k].op in ('addiu', 'ori')
+                            and f.insns[addr - k].rt == i.rs and f.insns[addr - k].imm in (0xA0, 0xB0, 0xC0)) for k in (4, 8))
+                fnptr = False  # `lui t, hi; lw t, lo(t); jr t`: a call through a pointer variable
+                for k in (4, 8):
+                    lw = f.insns.get(addr - k)
+                    lu = f.insns.get(addr - k - 4)
+                    if lw is not None and lw.op == 'lw' and lw.rt == i.rs and lw.rs == lw.rt and lu is not None \
+                            and lu.op == 'lui' and lu.rt == lw.rt:
+                        fnptr = True
+                if not stub and not fnptr:
+                    stray.append(addr)
+    if stray:
+        print('warning: %d indirect jumps without a table (jump tables missed by the analysis?): %s' % (
+            len(stray), ' '.join('%08X' % a for a in sorted(stray)[:20])))
     open(os.path.join(args.out, args.prefix + '_info.txt'), 'w').write('entry %08x gp %08x base %08x size %x\n' % (pc, gp, img.base, len(img.data)))
 
 

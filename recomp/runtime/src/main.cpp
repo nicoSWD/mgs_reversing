@@ -22,6 +22,7 @@ void host_set_screenshots(const std::vector<int>& frames, const std::string& pre
 void host_set_script(const std::string& s);
 extern bool g_turbo;
 extern int g_max_frames;
+extern int g_log_from;  // --log-from N: the --log categories only switch on at frame N (for two frames)
 
 static uint32_t fnv(const uint8_t* p, size_t n) {
     uint32_t h = 2166136261u;
@@ -53,6 +54,8 @@ int main(int argc, char** argv) {
             shot_prefix = argv[++i];
             size_t p = 0;
             while (p < l.size()) { size_t e = l.find(',', p); if (e == std::string::npos) e = l.size(); shots.push_back(atoi(l.substr(p, e - p).c_str())); p = e + 1; }
+        } else if (a == "--log-from" && i + 1 < argc) {
+            g_log_from = atoi(argv[++i]);
         } else if (a == "--log" && i + 1 < argc) {
             std::string l = argv[++i];
             bool all = l.find("all") != std::string::npos;
@@ -65,6 +68,7 @@ int main(int argc, char** argv) {
         } else { usage(); return a == "--help" ? 0 : 2; }
     }
     host_set_screenshots(shots, shot_prefix);
+    if (g_log_from) host_log_set(false);
 
     if (!cd_open(cue)) { fprintf(stderr, "cannot open the disc image %s\n", cue.c_str()); return 1; }
     uint32_t lba, size;

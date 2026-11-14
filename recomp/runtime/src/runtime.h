@@ -12,6 +12,8 @@
 
 [[noreturn]] void fatal(const char* fmt, ...);
 void logf(const char* cat, const char* fmt, ...);
+int host_frame_number();
+void host_log_set(bool on);
 extern bool g_log_bios, g_log_irq, g_log_cd, g_log_gpu, g_log_dma, g_log_pad;
 #define LOG(flag, ...) do { if (g_log_##flag) logf(#flag, __VA_ARGS__); } while (0)
 
@@ -71,4 +73,6 @@ bool cd_read_sector_user(uint32_t lba, uint8_t* out2048);
 /* host */
 void host_present(Cpu* c);
 bool host_poll_events(Cpu* c);   /* false: quit */
-uint16_t host_pad_state(int port);
+uint16_t host_pad_state(int port, bool analog);
+void host_pad_sticks(uint8_t out[4]);
+void host_pad_rumble(int small_motor, int big_motor);

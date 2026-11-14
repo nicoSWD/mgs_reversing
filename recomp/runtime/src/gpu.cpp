@@ -316,6 +316,11 @@ int command_len(uint32_t w, bool* poly) {
 void exec_command() {
     const auto& f = g_fifo;
     uint32_t cmd = f[0] >> 24;
+    if (g_log_gpu) {
+        char buf[256]; int n = 0;
+        for (size_t i = 0; i < f.size() && n < 230; i++) n += snprintf(buf + n, sizeof buf - n, " %08X", f[i]);
+        logf("gpu", "cmd%s", buf);
+    }
     if (cmd >= 0x20 && cmd < 0x40) exec_polygon(f);
     else if (cmd >= 0x40 && cmd < 0x60) exec_line(f);
     else if (cmd >= 0x60 && cmd < 0x80) exec_rect(f);
@@ -358,7 +363,6 @@ void gpu_init() {
 const uint16_t* gpu_vram() { return g_vram; }
 
 void gpu_write_gp0(uint32_t v) {
-    if (g_log_gpu && g_need == 0 && !g_wr_active) logf("gpu", "GP0 %08X", v);
     if (g_wr_active) {
         write_vram_pixel((uint16_t)v);
         if (g_wr_active) write_vram_pixel((uint16_t)(v >> 16));
@@ -369,6 +373,7 @@ void gpu_write_gp0(uint32_t v) {
         uint32_t cmd = v >> 24;
         if (cmd == 0x00 || cmd == 0x01 || cmd == 0x1F || (cmd >= 0x03 && cmd <= 0x1E)) return;
         if (cmd >= 0xE0) {
+            LOG(gpu, "env %08X", v);
             switch (cmd) {
                 case 0xE1: set_texpage(v); break;
                 case 0xE2: g_twin_mx = v & 31; g_twin_my = (v >> 5) & 31; g_twin_ox = (v >> 10) & 31; g_twin_oy = (v >> 15) & 31; g_tw_reg = v; break;
@@ -469,7 +474,7 @@ uint32_t gpu_read_status() {
     s |= (g_disp_on ? 0u : 1u) << 23;
     s |= (g_irq1 ? 1u : 0u) << 24;
     s |= 1u << 26;                           // ready for a command
-    s |= (g_rd_active ? 0u : 1u) << 27;      // ready to send VRAM to the CPU
+    s |= (g_rd_active ? 1u : 0u) << 27;      // ready to send VRAM to the CPU (set while read-back data is pending)
     s |= 1u << 28;                           // ready for a DMA block
     s |= (uint32_t)g_dma_dir << 29;
     uint32_t drq = g_dma_dir == 0 ? 0 : g_dma_dir == 1 ? 1 : g_dma_dir == 2 ? 1 : (g_rd_active ? 1 : 0);

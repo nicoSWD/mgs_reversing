@@ -27,7 +27,7 @@ enum { RGBC = 6, OTZ = 7, IR0 = 8, IR1 = 9, IR2 = 10, IR3 = 11, SXY0 = 12, SXY1 
 enum { TRX = 5, TRY = 6, TRZ = 7, RBK = 13, GBK = 14, BBK = 15, RFC = 21, GFC = 22, BFC = 23, OFX = 24, OFY = 25,
        H_ = 26, DQA = 27, DQB = 28, ZSF3 = 29, ZSF4 = 30, FLAG = 31 };
 
-constexpr uint32_t F_IR0 = 1u << 12, F_SY2 = 1u << 13, F_SX2 = 1u << 14, F_MAC0P = 1u << 15, F_MAC0N = 1u << 16,
+constexpr uint32_t F_IR0 = 1u << 12, F_SY2 = 1u << 13, F_SX2 = 1u << 14, F_MAC0P = 1u << 16, F_MAC0N = 1u << 15,
                    F_DIV = 1u << 17, F_SZ3 = 1u << 18, F_B = 1u << 19, F_G = 1u << 20, F_R = 1u << 21,
                    F_IR3 = 1u << 22, F_IR2 = 1u << 23, F_IR1 = 1u << 24;
 
@@ -149,7 +149,7 @@ void mvmva_core(G& g, int mx, int vx, int cv, bool lm_ir) {
     int64_t T[3] = {0, 0, 0};
     if (cv < 3) {
         static const int base[3] = {TRX, RBK, RFC};
-        for (int i = 0; i < 3; i++) T[i] = (int64_t)g.k[base[i] + i] * 0x1000;
+        for (int i = 0; i < 3; i++) T[i] = (int64_t)g.k[base[cv] + i] * 0x1000;
     }
     for (int i = 0; i < 3; i++) {
         int64_t acc;
@@ -199,7 +199,7 @@ void rtp_clean(G& g, int vi, bool last) {
         int32_t m3 = g.d[MAC3];
         g.d[IR3] = m3 < lo ? lo : (m3 > 0x7FFF ? 0x7FFF : m3);
     }
-    push_sz(g, (int32_t)(mac[2] >> ((1 - g.sf) * 12)));
+    push_sz(g, (int32_t)(mac[2] >> 12));  // SZ3 is always the unshifted result / 0x1000, whatever sf says
     uint32_t q = divide(g, (uint32_t)(uint16_t)g.k[H_], (uint32_t)(uint16_t)g.d[SZ3]);
     int64_t sx = (int64_t)q * (int16_t)g.d[IR1] + g.k[OFX];
     int64_t sy = (int64_t)q * (int16_t)g.d[IR2] + g.k[OFY];

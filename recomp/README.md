@@ -20,11 +20,13 @@ your disc image and the running program reads everything else from it.
 | GTE (geometry coprocessor) | implemented from the public documentation, lightly tested |
 | CD-ROM controller, DMA, root counters, interrupts | working |
 | SPU (24 ADPCM voices, ADSR, IRQ used as a stream clock) with audio output | working, no reverb yet |
-| Controller (digital pad, keyboard) | working |
+| Controller (DualShock model: digital/analog/config modes, vibration; keyboard and gamepads such as the PS5 DualSense) | working |
 | MDEC (movie decoder) | implemented, untested |
-| Gameplay beyond the opening demo, save states, memory cards, discs 2 and 3 | not tried yet |
+| Gameplay, save states, memory cards, discs 2 and 3 | gameplay runs; no memory cards (the game reports "no card"), no save states, discs 2 and 3 not tried |
 
-What you get today: the Konami logo and the opening demo run at 60 fps with sound.
+What you get today: the Konami logo, the opening cinematic, the title screen and menus, and a new game that
+plays into the first area, at 60 fps with sound. A 300,000 frame run with random button presses finished
+without a crash or a hang.
 
 ## Building
 
@@ -53,17 +55,31 @@ runtime refuses a disc whose executable is not the one the code was generated fr
 Keys: arrows = d-pad, Z cross, X circle, A square, S triangle, Q/W = L1/R1, E/R = L2/R2, Enter = start,
 Backspace = select, Tab = turbo, Esc = quit.
 
+Gamepads (SDL3 game controller API, hot-pluggable, also works while the window is not focused): a PS5
+DualSense or any other supported pad maps as a PlayStation controller would: cross, circle, square, triangle,
+L1/R1, L2/R2 (triggers), L3/R3 (stick clicks), d-pad, Options = START, Create or the touchpad = SELECT. The
+game sees a DualShock: it starts in digital mode, and when the game switches it to analog mode the sticks are
+passed through and vibration requests drive the pad's rumble motors. While the game is in digital mode the
+left stick acts as the d-pad.
+
+In MGS: START on the title opens the menu, circle confirms, the memory card prompt defaults to "NO" (press left,
+then circle, to continue without a card).
+
 `--screenshot` writes PNG files of chosen frames and prints how many pixels were lit; `--press` scripts button
-presses (`START@700+8`); `--log` takes a comma list of `bios,irq,cd,gpu,dma,pad,all`.
+presses (`START@700+8`); `--log` takes a comma list of `bios,irq,cd,gpu,dma,pad,all` (`gpu` logs every command, `bios` every thread
+switch) and every line carries the frame number; with `--log-from N` the categories are only on for two frames
+starting at frame N.
 
 ## How it works
 
 ```
 tools/psxrecomp.py        PS-X EXE -> C. A function is the set of blocks reachable without following jal.
                           Every block leader gets a C label, branches are gotos, delay slots are inlined.
-                          `jr rX` that is not a return dispatches with a switch over the function's labels,
-                          so jump tables need no pattern recovery; anything unknown leaves the function and
-                          goes through the runtime's dispatcher.
+                          `jr rX` that is not a return is a jump table: the analysis recovers its
+                          targets (lui/lw patterns, or a base kept in a saved register plus the sltiu bound)
+                          and emits a switch; it warns about indirect jumps it could not resolve, and those
+                          leave the function through the runtime's dispatcher, which is only safe for tail
+                          calls.
 runtime/include/psxrt.h   the ABI of the generated code: CPU state, inline memory access, hooks
 runtime/src/core.cpp      coprocessor 0, scheduler, interrupt delivery, dispatcher and the interpreter
 runtime/src/bios.cpp      high-level kernel: A0/B0/C0 calls, events, exceptions, threads
@@ -86,7 +102,12 @@ Design notes that matter when adding a game:
 
 `cmake -DPSX_TRACE=ON` records the functions entered (ring buffer plus first-entry order); `kill -TERM` dumps
 them, the interrupt registers and guest RAM to `/tmp/psx_ram.bin`. `tools/symbolize.py MAP` annotates addresses
-using a linker map. `PSX_DUMP_RAM=file` dumps RAM at exit when `--frames` is used.
+using a linker map. `PSX_DUMP_RAM=file` dumps RAM at exit when `--frames` is used. Environment variables for
+tracing: `PSX_WATCH=addr,addr` prints a line with the frame number, return address and `a0` whenever one of
+those functions is entered, `PSX_TRACE_RANGE=from,to` prints every function and interpreted instruction between
+two frames, `PSX_TRACE_DUMP=1` dumps the ring at the `--frames` exit (all of these need the `PSX_TRACE` build).
+`PSX_VRAM_SHOTS=1` writes the whole 1024x512 VRAM next to each `--screenshot`, `PSX_REDSCAN=prefix` saves every
+frame that has a mostly red row.
 
 ## Licence
 

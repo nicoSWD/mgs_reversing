@@ -27,7 +27,7 @@ void fatal(const char* fmt, ...) {
 void logf(const char* cat, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
-    std::fprintf(stderr, "[%s] ", cat);
+    std::fprintf(stderr, "[%s f%d] ", cat, host_frame_number());
     std::vfprintf(stderr, fmt, ap);
     std::fprintf(stderr, "\n");
     va_end(ap);
@@ -209,6 +209,9 @@ static void interp_run(Cpu* c, uint32_t pc, uint32_t stop_ra) {
         }
         PSX_TICK(c, 1);
         g_last_interp_pc = pc;
+#ifdef PSX_TRACE_CALLS
+        { extern bool trace_in_range(); if (trace_in_range()) fprintf(stderr, "ITRACE f%d %08X ra=%08X stop=%08X\n", host_frame_number(), pc, c->r[31], stop_ra); }
+#endif
         uint32_t w = rd32(c, pc);
         uint32_t next = pc + 4;
         uint32_t op = w >> 26, rs = (w >> 21) & 31, rt = (w >> 16) & 31, rd = (w >> 11) & 31, sh = (w >> 6) & 31;
@@ -427,7 +430,28 @@ static std::vector<uint32_t> g_first;
 static uint32_t g_trace[8192], g_trace_ra[8192];
 static uint32_t g_trace_pos = 0;
 static uint32_t g_skip = 0;
-extern "C" void psx_trace_enter(Cpu* c, uint32_t addr) { if (!g_skip) { const char* s = getenv("PSX_TRACE_SKIP"); g_skip = s ? (uint32_t)strtoul(s, nullptr, 16) : 1; } if (addr == g_skip) return; if (g_seen.insert(addr).second) g_first.push_back(addr); g_trace_ra[g_trace_pos & 8191] = c->r[31]; g_trace[g_trace_pos++ & 8191] = addr; }
+extern "C" void psx_trace_enter2(Cpu* c, uint32_t addr);
+static bool count_hit(uint32_t addr) {
+    static std::unordered_set<uint32_t> watch;
+    static bool init = false;
+    if (!init) {
+        init = true;
+        if (const char* e = getenv("PSX_WATCH")) {  // comma separated hex addresses: print each entry with the frame number
+            const char* p = e;
+            while (*p) { watch.insert((uint32_t)strtoul(p, (char**)&p, 16)); if (*p == ',') p++; }
+        }
+    }
+    return watch.count(addr) != 0;
+}
+bool trace_in_range() {
+    static int lo = -1, hi = -1;
+    static bool init = false;
+    if (!init) { init = true; if (const char* e = getenv("PSX_TRACE_RANGE")) sscanf(e, "%d,%d", &lo, &hi); }
+    int f = host_frame_number();
+    return lo >= 0 && f >= lo && f <= hi;
+}
+extern "C" void psx_trace_enter(Cpu* c, uint32_t addr) { if (trace_in_range()) fprintf(stderr, "ENTER f%d %08X ra=%08X\n", host_frame_number(), addr, c->r[31]); if (count_hit(addr)) fprintf(stderr, "WATCH f%d %08X ra=%08X a0=%08X\n", host_frame_number(), addr, c->r[31], c->r[4]); psx_trace_enter2(c, addr); }
+extern "C" void psx_trace_enter2(Cpu* c, uint32_t addr) { if (!g_skip) { const char* s = getenv("PSX_TRACE_SKIP"); g_skip = s ? (uint32_t)strtoul(s, nullptr, 16) : 1; } if (addr == g_skip) return; if (g_seen.insert(addr).second) g_first.push_back(addr); g_trace_ra[g_trace_pos & 8191] = c->r[31]; g_trace[g_trace_pos++ & 8191] = addr; }
 void trace_dump(int n) {
     fprintf(stderr, "--- recent functions entered (run-length) ---\n");
     uint32_t prev = 0; int run = 0;
