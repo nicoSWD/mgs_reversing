@@ -1,0 +1,8 @@
+build*/
+generated/
+extracted/
+assets/
+shots/
+debug/
+psxrecomp-mgs
+.DS_Store
